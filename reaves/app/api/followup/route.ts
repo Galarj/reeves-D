@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callClaude } from '@/lib/anthropic';
+import { FOLLOWUP_SYSTEM_PROMPT } from '@/prompts/followup';
 import { getMockFollowup } from '@/lib/mock-data';
 
-const FOLLOWUP_SYSTEM_PROMPT = `You are REAVES's research assistant. A student has read an AI synthesis of academic sources and is asking a follow-up question.
-Answer the question clearly in 2-4 sentences, drawing from the synthesis context. Be accurate and academic but accessible.
-Return ONLY valid JSON:
-{
-  "answer": "Your 2-4 sentence answer here."
-}
-No markdown. JSON only.`;
 
 export async function POST(req: NextRequest) {
   try {

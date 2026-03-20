@@ -91,3 +91,21 @@ export interface FollowUpMessage {
 export interface JargonResponse {
   simplified: string;
 }
+
+export interface ComparisonRow {
+  metric: string;
+  paper1: string;
+  paper2: string;
+  paper3?: string;
+}
+
+export interface CompareResponse {
+  rows: ComparisonRow[];
+}
+
+export interface EvidenceResponse {
+  answer: string;
+  evidence_snippet: string | null;
+  confidence_score: number;
+  location_context: string;
+}

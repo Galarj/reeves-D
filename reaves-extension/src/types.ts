@@ -65,4 +65,11 @@ export interface Notebook {
   updated_at: string;
 }
 
+export interface EvidenceResponse {
+  answer: string;
+  evidence_snippet: string | null;
+  confidence_score: number;
+  location_context: string;
+}
+
 export type View = 'ask' | 'pagesearch' | 'notebook';

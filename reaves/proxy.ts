@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * This allows the REAVES Chrome extension (chrome-extension:// origin)
  * to call the web app's API routes directly.
  */
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   // Handle preflight OPTIONS requests
   if (req.method === 'OPTIONS') {
     return new NextResponse(null, {

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { callAPI, sendHighlights, clearHighlights } from '../api';
-import type { PageExcerpt } from '../types';
+import type { EvidenceResponse } from '../types';
 
 type Step = 'idle' | 'extracting' | 'searching' | 'results';
 
@@ -27,10 +27,10 @@ async function extractPageText(): Promise<string> {
               const el = document.querySelector(s);
               if (el) {
                 const text = (el as HTMLElement).innerText;
-                if (text.length > 200) return text.slice(0, 20000);
+                if (text.length > 200) return text.slice(0, 30000);
               }
             }
-            return document.body.innerText.slice(0, 20000);
+            return document.body.innerText.slice(0, 30000);
           },
         },
         (results) => {
@@ -54,7 +54,7 @@ function chunkText(text: string, chunkSize = 800): string[] {
 export default function PageSearchView() {
   const [query, setQuery] = useState('');
   const [step, setStep] = useState<Step>('idle');
-  const [excerpts, setExcerpts] = useState<PageExcerpt[]>([]);
+  const [result, setResult] = useState<EvidenceResponse | null>(null);
   const [highlightsOn, setHighlightsOn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -70,8 +70,9 @@ export default function PageSearchView() {
     if (!query.trim()) return;
     setStep('extracting');
     setError(null);
-    setExcerpts([]);
+    setResult(null);
     setHighlightsOn(false);
+    clearHighlights();
 
     try {
       // Get page metadata
@@ -91,18 +92,18 @@ export default function PageSearchView() {
       const chunks = chunkText(pageText);
       setStep('searching');
 
-      const res = await callAPI<{ excerpts: PageExcerpt[] }>('/api/page-search', {
+      const res = await callAPI<EvidenceResponse>('/api/page-search', {
         chunks,
         query: query.trim(),
       });
 
-      if (!res.ok || !res.data?.excerpts) {
+      if (!res.ok || !res.data) {
         setError('Page search failed. Make sure REAVES app is running at localhost:3000.');
         setStep('idle');
         return;
       }
 
-      setExcerpts(res.data.excerpts);
+      setResult(res.data);
       setStep('results');
     } catch (err) {
       setError(String(err));
@@ -114,8 +115,8 @@ export default function PageSearchView() {
     if (highlightsOn) {
       clearHighlights();
       setHighlightsOn(false);
-    } else {
-      sendHighlights(excerpts);
+    } else if (result?.evidence_snippet) {
+      sendHighlights([{ text: result.evidence_snippet }]);
       setHighlightsOn(true);
     }
   }
@@ -132,7 +133,7 @@ export default function PageSearchView() {
   function reset() {
     clearHighlights();
     setHighlightsOn(false);
-    setExcerpts([]);
+    setResult(null);
     setStep('idle');
     setQuery('');
     setError(null);
@@ -142,13 +143,13 @@ export default function PageSearchView() {
 
   return (
     <div className="fade-up">
-      <p className="section-label">Search this page's content</p>
+      <p className="section-label">Evidence Engine</p>
 
       <div style={{ position: 'relative' }}>
         <textarea
           className="input"
           rows={2}
-          placeholder="What are you looking for in this page?"
+          placeholder="Ask a question about the current page…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -170,62 +171,82 @@ export default function PageSearchView() {
           disabled={!query.trim() || isLoading}
         >
           {isLoading
-            ? <><div className="spinner" />{step === 'extracting' ? 'Reading page…' : 'Searching…'}</>
-            : '⌕ Search Page'}
+            ? <><div className="spinner" />{step === 'extracting' ? 'Reading page…' : 'Synthesizing…'}</>
+            : '⌕ Extract Answer'}
         </button>
       </div>
 
-      {step === 'results' && excerpts.length > 0 && (
+      {step === 'results' && result && (
         <>
           <div className="divider" />
           <div className="flex-between mb-2">
-            <p className="section-label">{excerpts.length} relevant excerpts</p>
-            <button
-              className={`btn btn-sm ${highlightsOn ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={toggleHighlights}
-              style={{ padding: '4px 10px', fontSize: 10 }}
-            >
-              {highlightsOn ? '● Highlighted' : '○ Highlight'}
-            </button>
+            <p className="section-label">AI Analysis</p>
+            {result.evidence_snippet && (
+              <button
+                className={`btn btn-sm ${highlightsOn ? 'btn-primary' : 'btn-ghost'}`}
+                onClick={toggleHighlights}
+                style={{ padding: '4px 10px', fontSize: 10 }}
+              >
+                {highlightsOn ? '● Source Highlighted' : '○ Highlight Source'}
+              </button>
+            )}
           </div>
 
-          {excerpts.map((ex, i) => (
-            <div key={i} className="card fade-up">
-              <div className="flex-between gap-2" style={{ marginBottom: 6 }}>
-                <span className="tag tag-violet">#{i + 1}</span>
-                <span
-                  className={`score-badge ${ex.score >= 0.7 ? 'score-high' : ex.score >= 0.4 ? 'score-medium' : 'score-low'}`}
-                >
-                  {Math.round(ex.score * 100)}% match
-                </span>
+          <div className="card fade-up">
+            <div className="flex-between gap-2" style={{ marginBottom: 10 }}>
+              <span className="tag tag-violet">
+                {result.location_context?.slice(0, 40) || 'Verified Match'}
+              </span>
+              <span
+                className={`score-badge ${result.confidence_score >= 0.8 ? 'score-high' : result.confidence_score >= 0.5 ? 'score-medium' : 'score-low'}`}
+              >
+                {Math.round(result.confidence_score * 100)}% confidence
+              </span>
+            </div>
+            
+            <p style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.6, marginBottom: 12, fontWeight: 500 }}>
+              {result.answer}
+            </p>
+
+            {result.evidence_snippet ? (
+              <div style={{ 
+                padding: '8px 10px', 
+                backgroundColor: 'var(--surface2)', 
+                borderLeft: '2px solid var(--violet)', 
+                borderRadius: '4px', 
+                fontSize: 11, 
+                color: 'var(--text-muted)', 
+                fontStyle: 'italic', 
+                marginBottom: 12,
+                lineHeight: 1.5
+              }}>
+                "{result.evidence_snippet}"
               </div>
-              <p style={{ fontSize: 11, color: 'var(--text)', lineHeight: 1.7, marginBottom: 8 }}>
-                {ex.text.length > 300 ? ex.text.slice(0, 300) + '…' : ex.text}
+            ) : (
+              <p style={{ fontSize: 10, color: 'var(--rose)', marginBottom: 12, fontStyle: 'italic' }}>
+                No exact snippet could be extracted.
               </p>
-              <div className="copy-actions">
+            )}
+
+            <div className="copy-actions">
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => copyPlain(result.answer)}
+              >
+                Copy Answer
+              </button>
+              {result.evidence_snippet && (
                 <button
                   className="btn btn-ghost btn-sm"
-                  onClick={() => copyPlain(ex.text)}
-                >
-                  Copy
-                </button>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => copyWithCitation(ex.text)}
+                  onClick={() => copyWithCitation(result.evidence_snippet!)}
                   style={{ flex: 1 }}
                 >
-                  Copy + Citation
+                  Copy Quote + Citation
                 </button>
-              </div>
+              )}
             </div>
-          ))}
+          </div>
         </>
-      )}
-
-      {step === 'results' && excerpts.length === 0 && (
-        <div className="empty-state">
-          <p>No relevant excerpts found for this query on the current page.</p>
-        </div>
       )}
 
       {toast && <div className="toast">{toast}</div>}

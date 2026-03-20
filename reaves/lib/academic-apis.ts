@@ -90,3 +90,45 @@ export async function searchPubMed(query: string, limit = 5): Promise<Partial<So
     return [];
   }
 }
+
+// ============ AGGREGATED FETCH ============
+
+// Type alias used in API routes and prompts
+export type RawPaperData = Partial<Source>;
+
+/**
+ * Concurrently fetches from Semantic Scholar AND PubMed,
+ * deduplicates on DOI (when available) or normalised title,
+ * and returns up to `limit` papers for Claude to score.
+ */
+export async function fetchAllAcademicSources(
+  query: string,
+  limit = 10
+): Promise<RawPaperData[]> {
+  const perSource = Math.ceil(limit / 2);
+
+  const [ssResults, pmResults] = await Promise.allSettled([
+    searchSemanticScholar(query, perSource),
+    searchPubMed(query, perSource),
+  ]);
+
+  const ss = ssResults.status === 'fulfilled' ? ssResults.value : [];
+  const pm = pmResults.status === 'fulfilled' ? pmResults.value : [];
+
+  const combined = [...ss, ...pm];
+
+  // Deduplicate: prefer earlier (Semantic Scholar) entry when DOI matches
+  const seen = new Set<string>();
+  const deduped: RawPaperData[] = [];
+
+  for (const paper of combined) {
+    const key = paper.doi
+      ? paper.doi.toLowerCase()
+      : (paper.title ?? '').toLowerCase().slice(0, 60);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(paper);
+  }
+
+  return deduped.slice(0, limit);
+}

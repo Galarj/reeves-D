@@ -1,5 +1,5 @@
 // Mock data for demo mode — zero API calls, works offline
-import { ClarifierResponse, SearchResult, BiasFlag, ThesisResponse, JargonResponse } from '@/types';
+import { ClarifierResponse, SearchResult, BiasFlag, ThesisResponse, JargonResponse, CompareResponse } from '@/types';
 
 // ============ MOCK CLARIFIER ============
 export function getMockClarifier(query: string): ClarifierResponse {
@@ -439,5 +439,37 @@ export function getMockFollowup(question: string): { answer: string } {
   }
   return {
     answer: 'Based on the synthesis, the research suggests a complex, multi-factorial relationship. The key factors appear to be duration of use, type of engagement (active vs. passive), individual vulnerability, and platform design features. More research is needed to establish definitive answers, particularly longitudinal studies with diverse populations.',
+  };
+}
+
+// ============ MOCK COMPARISON ============
+export function getMockComparison(): CompareResponse {
+  return {
+    rows: [
+      {
+        metric: 'Methodology',
+        paper1: 'Longitudinal cohort study following 5,000 U.S. young adults over 3 years. Used validated PHQ-9 depression scales and self-reported daily social media usage. Controlled for 12 confounders including pre-existing mental health conditions.',
+        paper2: 'Systematic review and meta-analysis of 47 peer-reviewed studies (N=120,000+). Followed PRISMA reporting standards. Used random-effects model to account for heterogeneity across studies.',
+        paper3: 'Cross-national observational study across 15 countries (N=200,000 adolescents). Employed multilevel modeling to account for country-level variance. Used national survey data with standardised well-being instruments.',
+      },
+      {
+        metric: 'Sample Size & Population',
+        paper1: 'N=5,000 U.S. adults aged 18–32. Drawn from a nationally representative panel. 3-year follow-up with 78% retention rate. Predominantly English-speaking, limiting generalizability to non-U.S. populations.',
+        paper2: 'Aggregate N=120,000+ across 47 studies spanning multiple countries and age groups (primarily 13–25). Studies ranged in size from N=200 to N=45,000. Geographic scope broader but heterogeneous across included studies.',
+        paper3: 'N=200,000 adolescents aged 10–18 across 15 countries including low- and middle-income nations. Sample designed to be globally representative. Annual data collection over 4 years from 2019–2023.',
+      },
+      {
+        metric: 'Key Findings',
+        paper1: 'Social media use exceeding 3 hours daily associated with a 2.1x increased odds of depressive symptoms (OR=2.1, 95% CI 1.6–2.8). Passive scrolling was significantly more harmful than active posting. Dose-response relationship was consistent across age sub-groups.',
+        paper2: 'Instagram use correlated with body image dissatisfaction (effect size d=0.45). TikTok showed stronger associations with attention difficulties and sleep disruption than other platforms. Platform-specific effects were more predictive than total screen time.',
+        paper3: 'Relationship between screen time and mental health follows an inverted U-curve. Moderate use (1–2 hrs/day) associated with slightly better well-being than zero use. Harms escalated sharply above 4 hrs/day, consistent across all 15 countries studied.',
+      },
+      {
+        metric: 'Limitations & Bias',
+        paper1: 'Self-reported social media usage is subject to recall bias. Cannot fully exclude reverse causality (depressed individuals may increase social media use). Sample limited to U.S. adults; results may not generalise to adolescents or non-Western populations.',
+        paper2: 'High heterogeneity across included studies (I²=78%) reduces the precision of pooled estimates. Publication bias likely inflates negative effects. Most included studies relied on self-report measures without objective usage data.',
+        paper3: 'Observational design precludes causal inference. Data collection tied to national educational surveys, which may underrepresent school-dropouts and marginalised youth. Funding from a government agency with potential interest in restrictive screen-time policy outcomes.',
+      },
+    ],
   };
 }

@@ -1,30 +1,33 @@
-import Anthropic from '@anthropic-ai/sdk';
+// lib/anthropic.ts
+// (We are keeping the filename and function name so your API routes don't break!)
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-});
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// Initialize the free Gemini client
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function callClaude(systemPrompt: string, userMessage: string): Promise<unknown> {
-  const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 4096,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: userMessage }],
+  // We use Gemini 1.5 Flash because it is incredibly fast and completely free
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.5-flash',
+    systemInstruction: systemPrompt,
+    generationConfig: {
+      temperature: 0.2,
+      // This is the magic bullet: forces perfect JSON output
+      responseMimeType: "application/json",
+    }
   });
 
-  const content = message.content[0];
-  if (content.type !== 'text') {
-    throw new Error('Unexpected response type from Claude');
-  }
-
-  // Strip any accidental markdown fences
-  const raw = content.text.trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
-  
   try {
-    return JSON.parse(raw);
-  } catch {
-    throw new Error(`Claude returned invalid JSON: ${raw.slice(0, 200)}`);
+    const result = await model.generateContent(userMessage);
+    const rawText = result.response.text();
+
+    // Keep your brilliant markdown-stripping logic just in case
+    const cleaned = rawText.trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+
+    return JSON.parse(cleaned);
+  } catch (error: any) {
+    console.error("Gemini API Error:", error.message);
+    throw new Error(`AI generated invalid data or failed: ${error.message}`);
   }
 }
-
-export default anthropic;

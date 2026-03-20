@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Next.js build
+reaves/.next/
+reaves/out/
+
+# Vite / extension build
+reaves-extension/dist/
+
+# Environment variables — NEVER commit these
+reaves/.env.local
+reaves/.env
+.env.local
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo

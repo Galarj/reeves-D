@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "REAVES",
+  "short_name": "REAVES",
+  "description": "Research that explains itself. Highlight any text to clarify, search, and save to your notebook.",
+  "version": "0.1.0",
+  "permissions": [
+    "activeTab",
+    "sidePanel",
+    "storage",
+    "scripting",
+    "contextMenus"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content_script.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "action": {
+    "default_title": "Open REAVES Sidebar"
+  },
+  "icons": {
+    "16": "icon.svg",
+    "48": "icon.svg",
+    "128": "icon.svg"
+  }
+}

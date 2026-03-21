@@ -181,7 +181,7 @@ export default function PageSearchView() {
           <div className="divider" />
           <div className="flex-between mb-2">
             <p className="section-label">AI Analysis</p>
-            {result.evidence_snippet && (
+            {result.evidence_snippet && result.status !== 'no_evidence_found' && (
               <button
                 className={`btn btn-sm ${highlightsOn ? 'btn-primary' : 'btn-ghost'}`}
                 onClick={toggleHighlights}
@@ -194,9 +194,15 @@ export default function PageSearchView() {
 
           <div className="card fade-up">
             <div className="flex-between gap-2" style={{ marginBottom: 10 }}>
-              <span className="tag tag-violet">
-                {result.location_context?.slice(0, 40) || 'Verified Match'}
-              </span>
+              {result.status === 'no_evidence_found' ? (
+                <span className="tag" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' }}>
+                  ○ Not found on this page
+                </span>
+              ) : (
+                <span className="tag tag-violet">
+                  {result.location_context?.slice(0, 40) || 'Verified Match'}
+                </span>
+              )}
               <span
                 className={`score-badge ${result.confidence_score >= 0.8 ? 'score-high' : result.confidence_score >= 0.5 ? 'score-medium' : 'score-low'}`}
               >

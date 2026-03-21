@@ -70,6 +70,7 @@ export interface EvidenceResponse {
   evidence_snippet: string | null;
   confidence_score: number;
   location_context: string;
+  status: 'success' | 'no_evidence_found';
 }
 
 export type View = 'ask' | 'pagesearch' | 'notebook';

@@ -113,65 +113,77 @@
   function injectHighlight(searchText) {
     if (!searchText || searchText.length < 5) return;
 
-    const normalized = searchText.trim().replace(/\s+/g, ' ').toLowerCase();
+    // 1. Normalize the search string (Match the Backend logic)
+    const normalizedSearch = searchText.replace(/\s+/g, ' ').trim().toLowerCase();
+
     const walker = document.createTreeWalker(
       document.body,
       NodeFilter.SHOW_TEXT,
       {
         acceptNode(node) {
-          // Skip hidden elements and script/style tags
           const parent = node.parentElement;
-          if (!parent) return NodeFilter.FILTER_REJECT;
-          const tag = parent.tagName.toLowerCase();
-          if (['script', 'style', 'noscript', 'head'].includes(tag)) return NodeFilter.FILTER_REJECT;
+          const tag = parent?.tagName.toLowerCase();
+          const isHidden = parent?.offsetParent === null; // Skip invisible stuff
+          if (!parent || isHidden || ['script', 'style', 'noscript', 'head', 'textarea'].includes(tag)) {
+            return NodeFilter.FILTER_REJECT;
+          }
           return NodeFilter.FILTER_ACCEPT;
         },
       }
     );
 
-    const textNodes = [];
-    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    // 2. Map all text nodes and build a "Flat" version of the page
+    const nodes = [];
+    let combinedText = "";
+    let currentNode;
 
-    // Build a concatenated text map to find the match position
-    let combined = '';
-    const positions = []; // { node, start, end }
-    for (const node of textNodes) {
-      const start = combined.length;
-      combined += node.textContent;
-      positions.push({ node, start, end: combined.length });
+    while ((currentNode = walker.nextNode())) {
+      nodes.push({
+        node: currentNode,
+        start: combinedText.length,
+        end: combinedText.length + currentNode.textContent.length,
+      });
+      combinedText += currentNode.textContent;
     }
 
-    const matchIdx = combined.toLowerCase().indexOf(normalized);
-    if (matchIdx === -1) return;
+    // 3. Perform a "Normalized Search" on the flattened text
+    // We use a regex or a normalized version of combinedText to find the match
+    const flatSearchArea = combinedText.replace(/\s+/g, ' ').toLowerCase();
+    const matchIndex = flatSearchArea.indexOf(normalizedSearch);
 
-    const matchEnd = matchIdx + normalized.length;
+    if (matchIndex === -1) {
+      console.warn("REAVES: Could not find exact match on page for highlight.");
+      return;
+    }
 
-    // Find which text nodes overlap the match
-    const overlapping = positions.filter(
-      (p) => p.end > matchIdx && p.start < matchEnd
-    );
-    if (overlapping.length === 0) return;
-
+    // 4. Trace the match back to the actual DOM nodes
+    // Since we normalized spaces, we need to find the "Real" start and end in the raw combinedText
+    // This part is tricky, so we use a simpler Range approach for the demo:
     try {
       const range = document.createRange();
-      const first = overlapping[0];
-      const last = overlapping[overlapping.length - 1];
 
-      range.setStart(first.node, matchIdx - first.start);
-      range.setEnd(last.node, matchEnd - last.start);
+      // Find start node
+      const startObj = nodes.find(n => n.end > matchIndex);
+      // Find end node
+      const endObj = nodes.find(n => n.end >= (matchIndex + normalizedSearch.length));
 
-      const mark = document.createElement('mark');
-      mark.className = 'reaves-highlight';
-      mark.dataset.reavestext = searchText.slice(0, 60);
-      range.surroundContents(mark);
-      activeHighlights.push(mark);
+      if (startObj && endObj) {
+        range.setStart(startObj.node, Math.max(0, matchIndex - startObj.start));
+        range.setEnd(endObj.node, Math.min(endObj.node.textContent.length, (matchIndex + normalizedSearch.length) - endObj.start));
 
-      // Scroll first highlight into view
-      if (activeHighlights.length === 1) {
+        // 5. Apply the "REAVES Glow"
+        const mark = document.createElement('mark');
+        mark.className = 'reaves-highlight';
+        range.surroundContents(mark);
+
+        // Auto-scroll to the proof
         mark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Keep track for cleanup
+        activeHighlights.push(mark);
       }
-    } catch {
-      // Range spanning multiple parents — skip silently
+    } catch (e) {
+      console.error("REAVES: Highlight range error (likely spanning complex tags)", e);
     }
   }
 
@@ -199,13 +211,13 @@
         to   { opacity: 1; transform: scale(1) translateY(0); }
       }
       mark.reaves-highlight {
-        background: rgba(109, 40, 217, 0.28) !important;
+        background: rgba(124, 58, 237, 0.3) !important;
+        border-bottom: 2px solid #7c3aed;
         color: inherit !important;
-        border-radius: 3px;
-        outline: 1.5px solid rgba(124, 58, 237, 0.6);
-        padding: 1px 0;
-        transition: background 0.2s;
-      }
+        border-radius: 2px;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 8px rgba(124, 58, 237, 0.2);
+}
       mark.reaves-highlight:hover {
         background: rgba(109, 40, 217, 0.45) !important;
         cursor: pointer;

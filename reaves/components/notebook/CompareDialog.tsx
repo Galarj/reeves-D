@@ -73,7 +73,7 @@ export default function CompareDialog({ entries, onClose }: CompareDialogProps) 
       if (!element) throw new Error('Receipt element not found in DOM');
 
       const canvas = await html2canvas(element, {
-        scale: 3,
+        scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,

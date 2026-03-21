@@ -48,7 +48,7 @@ export default function ResearchReceipt({ entries, comparison, id }: ResearchRec
       <div
         id={id}
         style={{
-          width: '450px',
+          width: '600px',
           backgroundColor: '#ffffff',
           color: '#000000',
           padding: '40px',
@@ -110,25 +110,118 @@ export default function ResearchReceipt({ entries, comparison, id }: ResearchRec
             <p style={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', borderBottom: '2px solid #000', paddingBottom: '4px', marginBottom: '12px' }}>
               AI Synthesis Matrix
             </p>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '7px', border: '1px solid #000' }}>
+            <table style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              fontSize: '7px',
+              border: '2px solid #000',
+              tableLayout: 'fixed',
+            }}>
               <thead>
-                <tr style={{ backgroundColor: '#f0f0f0', borderBottom: '1px solid #000' }}>
-                  <th style={{ textAlign: 'left', padding: '6px', fontWeight: 900, textTransform: 'uppercase', borderRight: '1px solid #000', width: '22%' }}>Metric</th>
-                  <th style={{ textAlign: 'left', padding: '6px', fontWeight: 900, textTransform: 'uppercase', borderRight: '1px solid #000' }}>Paper 1</th>
-                  <th style={{ textAlign: 'left', padding: '6px', fontWeight: 900, textTransform: 'uppercase' }}>Paper 2</th>
+                <tr style={{ borderBottom: '2px solid #000' }}>
+                  <th style={{
+                    textAlign: 'left',
+                    padding: '8px 6px',
+                    fontFamily: "'Courier New', Courier, monospace",
+                    fontWeight: 900,
+                    fontSize: '7px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    borderRight: '2px solid #000',
+                    backgroundColor: '#f8f9fa',
+                    width: '22%',
+                    verticalAlign: 'bottom',
+                  }}>Metric</th>
+
+                  {entries.map((entry, idx) => (
+                    <th key={idx} style={{
+                      textAlign: 'center',
+                      padding: '8px 6px',
+                      fontWeight: 900,
+                      fontSize: '8px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      borderRight: idx < entries.length - 1 ? '1px solid #ccc' : 'none',
+                      verticalAlign: 'top',
+                    }}>
+                      <div style={{ fontSize: '8px', fontWeight: 900, letterSpacing: '0.12em', marginBottom: '4px' }}>
+                        PAPER {idx + 1}
+                      </div>
+                      <div style={{
+                        fontSize: '6.5px',
+                        fontWeight: 700,
+                        lineHeight: 1.4,
+                        textTransform: 'none',
+                        letterSpacing: '0',
+                        color: '#333',
+                        marginBottom: '4px',
+                      }}>
+                        {entry.source.title}
+                      </div>
+                      <div style={{
+                        display: 'inline-block',
+                        fontSize: '5.5px',
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        border: '1px solid #000',
+                        padding: '1px 4px',
+                        backgroundColor: '#f0f0f0',
+                      }}>
+                        SOURCE VERIFIED ✓
+                      </div>
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {comparison.map((row, i) => (
-                  <tr key={i} style={{ borderBottom: i < comparison.length - 1 ? '1px solid #000' : 'none' }}>
-                    <td style={{ padding: '6px', fontWeight: 700, textTransform: 'uppercase', borderRight: '1px solid #000', verticalAlign: 'top', backgroundColor: '#f8f8f8', lineHeight: 1.4 }}>
+                  <tr key={i} style={{
+                    borderBottom: i < comparison.length - 1 ? '1px solid #ccc' : 'none',
+                    pageBreakInside: 'avoid',
+                  }}>
+                    <td style={{
+                      padding: '6px',
+                      fontFamily: "'Courier New', Courier, monospace",
+                      fontWeight: 700,
+                      fontSize: '6.5px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      borderRight: '2px solid #000',
+                      verticalAlign: 'top',
+                      backgroundColor: '#f8f9fa',
+                      lineHeight: 1.5,
+                      height: 'auto',
+                      overflow: 'visible',
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word',
+                    }}>
                       {row.metric}
                     </td>
-                    <td style={{ padding: '6px', borderRight: '1px solid #000', verticalAlign: 'top', lineHeight: 1.5, color: '#222' }}>
-                      {row.paper1.length > 140 ? row.paper1.slice(0, 135) + '…' : row.paper1}
+                    <td style={{
+                      padding: '6px',
+                      borderRight: '1px solid #ccc',
+                      verticalAlign: 'top',
+                      lineHeight: 1.6,
+                      color: '#222',
+                      height: 'auto',
+                      overflow: 'visible',
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word',
+                    }}>
+                      {row.paper1}
                     </td>
-                    <td style={{ padding: '6px', verticalAlign: 'top', lineHeight: 1.5, color: '#222' }}>
-                      {row.paper2.length > 140 ? row.paper2.slice(0, 135) + '…' : row.paper2}
+                    <td style={{
+                      padding: '6px',
+                      verticalAlign: 'top',
+                      lineHeight: 1.6,
+                      color: '#222',
+                      height: 'auto',
+                      overflow: 'visible',
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word',
+                    }}>
+                      {row.paper2}
                     </td>
                   </tr>
                 ))}

@@ -44,7 +44,7 @@ export default function SynthesisPanel({ result, query }: SynthesisPanelProps) {
   };
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/3 backdrop-blur-sm overflow-hidden">
+    <div className="overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
         <div className="h-8 w-8 rounded-lg bg-blue-600/30 flex items-center justify-center">
@@ -60,39 +60,42 @@ export default function SynthesisPanel({ result, query }: SynthesisPanelProps) {
         {/* Main synthesis text */}
         <p className="text-sm text-white/80 leading-relaxed">{result.synthesis}</p>
 
-        {/* Agreements */}
-        {result.agreements?.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Consensus Points
-            </p>
-            <div className="space-y-1.5">
-              {result.agreements.map((a, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-white/70">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-400/60 flex-shrink-0" />
-                  {a}
-                </div>
-              ))}
+        {/* Consensus + Debates — 2-column grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Agreements */}
+          {result.agreements?.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Consensus
+              </p>
+              <div className="space-y-1.5">
+                {result.agreements.map((a, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm text-white/70">
+                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-400/60 flex-shrink-0 mt-1.5" />
+                    <span>{a}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Conflicts */}
-        {result.conflicts?.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Zap className="h-3.5 w-3.5" /> Active Debates
-            </p>
-            <div className="space-y-1.5">
-              {result.conflicts.map((c, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-white/70">
-                  <div className="h-1.5 w-1.5 rounded-full bg-amber-400/60 flex-shrink-0" />
-                  {c}
-                </div>
-              ))}
+          {/* Conflicts */}
+          {result.conflicts?.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5" /> Debates
+              </p>
+              <div className="space-y-1.5">
+                {result.conflicts.map((c, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm text-white/70">
+                    <div className="h-1.5 w-1.5 rounded-full bg-amber-400/60 flex-shrink-0 mt-1.5" />
+                    <span>{c}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Follow-up chat toggle */}
         <div className="border-t border-white/5 pt-4">

@@ -10,6 +10,41 @@
 
 const WEB_APP_BASE = 'http://localhost:3000';
 
+// ─── Smart Glossary: instant lookup table ─────────────────────────────────────
+// Matched by lowercase key. Returns the same shape as /api/define.
+const JARGON_MAP = {
+  synthesis: {
+    word: 'Synthesis',
+    short_definition: 'Combining information from multiple sources to form a new, unified argument or understanding.',
+    detailed_explanation: 'In academic research, synthesis means weaving together ideas, findings, and arguments from multiple sources into a coherent new understanding. Rather than summarizing each source individually, synthesis shows how they relate, agree, or contradict each other—forming the backbone of literature reviews and research papers.',
+  },
+  doi: {
+    word: 'DOI',
+    short_definition: 'A Digital Object Identifier — a permanent link that uniquely identifies an academic paper or dataset.',
+    detailed_explanation: 'A DOI (Digital Object Identifier) is a standardized alphanumeric string assigned to academic publications to provide a persistent link to their location on the internet. Unlike regular URLs that may change, a DOI is permanent and resolves to the current location of the document, making citations reliable and machine-readable.',
+  },
+  qualitative: {
+    word: 'Qualitative',
+    short_definition: 'Research that collects non-numerical data like interviews or observations to understand concepts and experiences.',
+    detailed_explanation: 'Qualitative research explores the "why" and "how" behind human behavior, collecting data through interviews, observations, focus groups, and textual analysis. Rather than producing statistics, it generates rich, descriptive insights into participants\' experiences, attitudes, and motivations—commonly used in social sciences, education, and health research.',
+  },
+  quantitative: {
+    word: 'Quantitative',
+    short_definition: 'Research that uses numerical data and statistical analysis to measure variables and identify patterns.',
+    detailed_explanation: 'Quantitative research relies on numerical data, statistical tests, and objective measurements to answer research questions. It is designed to produce generalizable results across large populations, using methods such as surveys, experiments, and existing datasets. Findings are usually presented as statistics, correlations, or effect sizes.',
+  },
+  'peer-reviewed': {
+    word: 'Peer-Reviewed',
+    short_definition: 'A publication vetted by independent experts in the field before it is published.',
+    detailed_explanation: 'Peer review is the process by which a submitted academic paper is evaluated by independent experts (peers) in the same field before publication. Reviewers assess the methodology, originality, and accuracy of the work, acting as a quality filter. Peer-reviewed publications are considered the gold standard of reliable academic evidence.',
+  },
+  'peer reviewed': {
+    word: 'Peer-Reviewed',
+    short_definition: 'A publication vetted by independent experts in the field before it is published.',
+    detailed_explanation: 'Peer review is the process by which a submitted academic paper is evaluated by independent experts (peers) in the same field before publication. Reviewers assess the methodology, originality, and accuracy of the work, acting as a quality filter. Peer-reviewed publications are considered the gold standard of reliable academic evidence.',
+  },
+};
+
 // ─── Side panel setup ────────────────────────────────────────────────────────
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
@@ -101,6 +136,55 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     sendResponse({ ok: true });
     return true;
+  }
+
+  // ── Smart Glossary Hover ──────────────────────────────────────────────────
+  if (type === 'GET_DEFINITION') {
+    const rawWord = (message.word ?? '').trim();
+    const key     = rawWord.toLowerCase();
+
+    // 1. Fast path — hardcoded jargon map (instant, no network)
+    if (JARGON_MAP[key]) {
+      sendResponse({ ok: true, ...JARGON_MAP[key] });
+      return true;
+    }
+
+    // 2. Slow path — call the Next.js backend
+    fetch(`${WEB_APP_BASE}/api/define`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ word: rawWord }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        // Forward the full API shape: { word, short_definition, detailed_explanation }
+        sendResponse({ ok: true, ...data });
+      })
+      .catch((err) => {
+        console.error('[REAVES background] GET_DEFINITION fetch error:', err);
+        sendResponse({ ok: false, definition: null, error: String(err) });
+      });
+
+    return true; // async
+  }
+
+  // ── Google Search Grader (CSP bypass) ────────────────────────────────────────
+  // google_grader.js can't fetch localhost directly due to Google's CSP.
+  // This handler proxies the request through the background service worker.
+  if (type === 'GRADE_SEARCH_RESULT') {
+    const { title = '', url = '', snippet = '' } = message.payload || {};
+    fetch(`${WEB_APP_BASE}/api/grade`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, url, snippet }),
+    })
+      .then((res) => res.json())
+      .then((data) => sendResponse({ ok: true, ...data }))
+      .catch((err) => {
+        console.error('[REAVES background] GRADE_SEARCH_RESULT error:', err);
+        sendResponse({ ok: false, grade: 'C', score: 50, reason: 'Backend unavailable.' });
+      });
+    return true; // async
   }
 });
 

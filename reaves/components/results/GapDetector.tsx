@@ -10,7 +10,7 @@ interface GapDetectorProps {
 
 export default function GapDetector({ gaps, onResearch }: GapDetectorProps) {
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/3 backdrop-blur-sm overflow-hidden">
+    <div className="overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
         <div className="h-8 w-8 rounded-lg bg-amber-600/30 flex items-center justify-center">

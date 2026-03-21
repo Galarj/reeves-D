@@ -1,0 +1,84 @@
+/* REAVES — Smart Glossary Hover Popup */
+
+@keyframes reaves-glossary-fadein {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.reaves-smart-popup {
+  /* Layout */
+  position: absolute;
+  z-index: 2147483647;
+  max-width: 280px;
+  min-width: 160px;
+  padding: 10px 14px;
+
+  /* Dark zinc-900 theme */
+  background: #18181b;
+  color: #e4e4e7;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+
+  /* Typography */
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+
+  /* Shadow */
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.55),
+    0 1px 6px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(124, 58, 237, 0.18);
+
+  /* Non-interactive so it doesn't block links below */
+  pointer-events: none;
+  user-select: none;
+
+  /* Fade-in animation */
+  animation: reaves-glossary-fadein 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reaves-smart-popup .reaves-popup-word {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a78bfa;   /* violet-400 accent */
+  margin-bottom: 5px;
+}
+
+.reaves-smart-popup .reaves-popup-def {
+  display: block;
+  color: #d4d4d8;
+}
+
+.reaves-smart-popup .reaves-popup-loading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #71717a;
+  font-size: 12px;
+}
+
+.reaves-smart-popup .reaves-popup-loading::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgba(124, 58, 237, 0.35);
+  border-top-color: #7c3aed;
+  border-radius: 50%;
+  animation: reaves-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes reaves-spin {
+  to { transform: rotate(360deg); }
+}

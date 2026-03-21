@@ -210,7 +210,7 @@ export default function DashboardPage() {
       <div className="flex flex-1 pt-14">
         {/* Content area */}
         <main className={`flex-1 min-w-0 transition-all duration-300 ${showNotebook ? 'mr-[380px]' : ''}`}>
-          <div className="max-w-3xl mx-auto px-4 py-12 space-y-8">
+          <div className="max-w-7xl mx-auto px-4 py-12 space-y-8">
 
             {/* Search bar */}
             <div className="space-y-3">
@@ -259,7 +259,7 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Results */}
+            {/* Results — Two-Column Command Center */}
             {step === 'results' && searchResult && (
               <div className="space-y-6 animate-fadeIn">
                 <div className="flex items-center gap-2">
@@ -268,32 +268,45 @@ export default function DashboardPage() {
                   <div className="h-px flex-1 bg-white/5" />
                 </div>
 
-                <div className="space-y-4">
-                  <h2 className="text-xs font-medium text-white/40 uppercase tracking-wider">
-                    {searchResult.sources?.length ?? 0} Sources Found
-                  </h2>
-                  {(searchResult.sources ?? []).map((source) => (
-                    <SourceCard
-                      key={source.id}
-                      source={source}
-                      isSaved={isSourceSaved(source.id)}
-                      onSave={handleSave}
-                      onDetectBias={handleDetectBias}
-                      onSimplify={handleSimplify}
-                      isDetectingBias={biasLoadingIds.has(source.id)}
-                      isSimplifying={simplifyLoadingIds.has(source.id)}
-                    />
-                  ))}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* ── Right Column: AI Insights (sticky sidebar) ── */}
+                  {/* Rendered first in DOM so it appears before sources on mobile */}
+                  <div className="order-first lg:order-last lg:col-span-5 lg:sticky lg:top-20 lg:h-fit space-y-5">
+                    {/* AI Synthesis — glassmorphism wrapper */}
+                    <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-[12px] overflow-hidden">
+                      <SynthesisPanel result={searchResult} query={currentQuery} />
+                    </div>
+
+                    {/* Research Gap Detector — amber accent */}
+                    {searchResult.research_gaps?.length > 0 && (
+                      <div className="rounded-2xl border border-white/10 border-l-2 border-l-amber-500/40 bg-white/5 backdrop-blur-[12px] overflow-hidden">
+                        <GapDetector
+                          gaps={searchResult.research_gaps}
+                          onResearch={handleSearch}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── Left Column: Source Cards ── */}
+                  <div className="lg:col-span-7 lg:order-first space-y-4">
+                    <h2 className="text-xs font-medium text-white/40 uppercase tracking-wider">
+                      {searchResult.sources?.length ?? 0} Sources Found
+                    </h2>
+                    {(searchResult.sources ?? []).map((source) => (
+                      <SourceCard
+                        key={source.id}
+                        source={source}
+                        isSaved={isSourceSaved(source.id)}
+                        onSave={handleSave}
+                        onDetectBias={handleDetectBias}
+                        onSimplify={handleSimplify}
+                        isDetectingBias={biasLoadingIds.has(source.id)}
+                        isSimplifying={simplifyLoadingIds.has(source.id)}
+                      />
+                    ))}
+                  </div>
                 </div>
-
-                <SynthesisPanel result={searchResult} query={currentQuery} />
-
-                {searchResult.research_gaps?.length > 0 && (
-                  <GapDetector
-                    gaps={searchResult.research_gaps}
-                    onResearch={handleSearch}
-                  />
-                )}
               </div>
             )}
           </div>

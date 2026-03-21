@@ -2,6 +2,7 @@ import { useState, useEffect, type JSX } from 'react';
 import { getPendingSelection } from './api';
 import AskView from './views/AskView';
 import NotebookView from './views/NotebookView';
+import { GlossaryCard, useGlossaryToggle } from './views/GlossaryCard';
 import type { View } from './types';
 
 // Icons (inline SVG to keep bundle size tiny)
@@ -25,8 +26,27 @@ export default function App() {
   const [view, setView] = useState<View>('ask');
   const [pendingText, setPendingText] = useState<string | null>(null);
 
+  // Smart Glossary toggle (persisted in chrome.storage.local)
+  const { enabled: glossaryEnabled, toggle: setGlossaryEnabled, init: initGlossary } = useGlossaryToggle();
+
+  // Google Search Grader toggle
+  const [graderEnabled, setGraderEnabled] = useState<boolean>(true);
+
+  // Detailed definition pushed from the content script
+  const [glossaryPayload, setGlossaryPayload] = useState<{
+    word: string;
+    detailed_explanation: string;
+  } | null>(null);
+
   // On mount, check if content script sent a selected text
   useEffect(() => {
+    // Hydrate both toggles from storage
+    initGlossary();
+    chrome.storage.local.get(['searchGraderEnabled'], (result) => {
+      setGraderEnabled(result.searchGraderEnabled !== false);
+    });
+
+    // Pending selection (from context-menu or bubble click)
     getPendingSelection().then((text) => {
       if (text) {
         setPendingText(text);
@@ -34,11 +54,18 @@ export default function App() {
       }
     });
 
-    // Also listen for future messages while the sidebar is open
-    const handler = (message: { type: string; text?: string }) => {
+    // Listen for messages from the content script
+    const handler = (message: { type: string; text?: string; payload?: { word: string; short_definition: string; detailed_explanation: string } }) => {
       if (message.type === 'OPEN_SIDEBAR' && message.text) {
         setPendingText(message.text);
         setView('ask');
+      }
+      // Glossary hover fired → show the detailed explanation in the sidebar
+      if (message.type === 'SHOW_DETAILED_DEF' && message.payload?.detailed_explanation) {
+        setGlossaryPayload({
+          word: message.payload.word,
+          detailed_explanation: message.payload.detailed_explanation,
+        });
       }
     };
     chrome.runtime.onMessage.addListener(handler);
@@ -55,13 +82,51 @@ export default function App() {
       {/* Header */}
       <header className="sidebar-header">
         <span className="sidebar-logo">✦ REAVES</span>
-        <span style={{ fontSize: 10, color: 'var(--text-muted)', fontWeight: 500 }}>
-          Research Engine
-        </span>
+        {/* Toggles row */}
+        <div className="header-toggles">
+          {/* Smart Glossary Toggle */}
+          <label className="glossary-toggle" title="Smart Glossary Hover">
+            <span className="glossary-toggle-label">Glossary</span>
+            <button
+              className={`toggle-switch ${glossaryEnabled ? 'on' : 'off'}`}
+              role="switch"
+              aria-checked={glossaryEnabled}
+              onClick={() => setGlossaryEnabled(!glossaryEnabled)}
+            >
+              <span className="toggle-thumb" />
+            </button>
+          </label>
+
+          {/* Google Search Grader Toggle */}
+          <label className="glossary-toggle" title="Google Search Grader">
+            <span className="glossary-toggle-label">Grader</span>
+            <button
+              className={`toggle-switch ${graderEnabled ? 'on' : 'off'}`}
+              role="switch"
+              aria-checked={graderEnabled}
+              onClick={() => {
+                const next = !graderEnabled;
+                setGraderEnabled(next);
+                chrome.storage.local.set({ searchGraderEnabled: next });
+              }}
+            >
+              <span className="toggle-thumb" />
+            </button>
+          </label>
+        </div>
       </header>
 
       {/* View Content */}
       <main className="sidebar-body">
+        {/* Glossary Card — slides in when the hover fires */}
+        {glossaryPayload && (
+          <GlossaryCard
+            word={glossaryPayload.word}
+            detailed_explanation={glossaryPayload.detailed_explanation}
+            onDismiss={() => setGlossaryPayload(null)}
+          />
+        )}
+
         {view === 'ask' && (
           <AskView
             initialText={pendingText}

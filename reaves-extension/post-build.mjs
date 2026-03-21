@@ -10,10 +10,11 @@ const dist = join(__dir, 'dist');
 mkdirSync(dist, { recursive: true });
 
 const files = [
-  ['manifest.json', 'manifest.json'],
-  ['background.js', 'background.js'],
-  ['content_script.js', 'content_script.js'],
-  ['public/icon.svg', 'icon.svg'],
+  ['manifest.json',          'manifest.json'],
+  ['background.js',          'background.js'],
+  ['content_script.js',      'content_script.js'],
+  ['public/google_grader.js','google_grader.js'],
+  ['public/icon.svg',        'icon.svg'],
 ];
 
 for (const [src, dest] of files) {

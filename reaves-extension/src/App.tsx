@@ -3,7 +3,11 @@ import { getPendingSelection } from './api';
 import AskView from './views/AskView';
 import NotebookView from './views/NotebookView';
 import AnalyzePage from './views/AnalyzePage';
-import { GlossaryCard, useGlossaryToggle } from './views/GlossaryCard';
+import { useGlossaryToggle } from './views/GlossaryCard';
+import { GlossaryPopup } from './components/GlossaryTooltip';
+import Header from './components/Header';
+import MockLogin from './views/MockLogin';
+import { UserProvider, useAuth } from './lib/UserContext';
 import type { View } from './types';
 
 // Icons (inline SVG to keep bundle size tiny)
@@ -12,9 +16,9 @@ const SparkleIcon = () => (
     <path d="M12 2l2.4 7.4L22 12l-7.6 2.6L12 22l-2.4-7.4L2 12l7.6-2.6z"/>
   </svg>
 );
-const SearchIcon = () => (
+const ScanIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+    <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/>
   </svg>
 );
 const BookIcon = () => (
@@ -22,13 +26,14 @@ const BookIcon = () => (
     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
   </svg>
 );
-const ScanIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/>
-  </svg>
-);
 
-export default function App() {
+function AppInner() {
+  const { isAuthenticated, login } = useAuth();
+
+  // ─── Gate: show MockLogin when not authenticated ───────────
+  if (!isAuthenticated) {
+    return <MockLogin onLogin={login} />;
+  }
   const [view, setView] = useState<View>('ask');
   const [pendingText, setPendingText] = useState<string | null>(null);
 
@@ -86,50 +91,24 @@ export default function App() {
 
   return (
     <div className="sidebar">
-      {/* Header */}
-      <header className="sidebar-header">
-        <span className="sidebar-logo">✦ REAVES</span>
-        {/* Toggles row */}
-        <div className="header-toggles">
-          {/* Smart Glossary Toggle */}
-          <label className="glossary-toggle" title="Smart Glossary Hover">
-            <span className="glossary-toggle-label">Glossary</span>
-            <button
-              className={`toggle-switch ${glossaryEnabled ? 'on' : 'off'}`}
-              role="switch"
-              aria-checked={glossaryEnabled}
-              onClick={() => setGlossaryEnabled(!glossaryEnabled)}
-            >
-              <span className="toggle-thumb" />
-            </button>
-          </label>
-
-          {/* Google Search Grader Toggle */}
-          <label className="glossary-toggle" title="Google Search Grader">
-            <span className="glossary-toggle-label">Grader</span>
-            <button
-              className={`toggle-switch ${graderEnabled ? 'on' : 'off'}`}
-              role="switch"
-              aria-checked={graderEnabled}
-              onClick={() => {
-                const next = !graderEnabled;
-                setGraderEnabled(next);
-                chrome.storage.local.set({ searchGraderEnabled: next });
-              }}
-            >
-              <span className="toggle-thumb" />
-            </button>
-          </label>
-        </div>
-      </header>
+      {/* ─── Header (extracted component) ─── */}
+      <Header
+        glossaryEnabled={glossaryEnabled}
+        onGlossaryToggle={setGlossaryEnabled}
+        graderEnabled={graderEnabled}
+        onGraderToggle={(next) => {
+          setGraderEnabled(next);
+          chrome.storage.local.set({ searchGraderEnabled: next });
+        }}
+      />
 
       {/* View Content */}
       <main className="sidebar-body">
-        {/* Glossary Card — slides in when the hover fires */}
+        {/* Glossary Popup — slides in when the content-script hover fires */}
         {glossaryPayload && (
-          <GlossaryCard
+          <GlossaryPopup
             word={glossaryPayload.word}
-            detailed_explanation={glossaryPayload.detailed_explanation}
+            definition={glossaryPayload.detailed_explanation}
             onDismiss={() => setGlossaryPayload(null)}
           />
         )}
@@ -158,5 +137,13 @@ export default function App() {
         ))}
       </nav>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <UserProvider>
+      <AppInner />
+    </UserProvider>
   );
 }

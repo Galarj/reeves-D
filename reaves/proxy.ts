@@ -1,27 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-/**
- * Next.js Middleware — adds CORS headers to all /api/* routes.
- * This allows the REAVES Chrome extension (chrome-extension:// origin)
- * to call the web app's API routes directly.
- */
-export function proxy(req: NextRequest) {
-  // Handle preflight OPTIONS requests
-  if (req.method === 'OPTIONS') {
-    return new NextResponse(null, {
-      status: 204,
-      headers: corsHeaders(),
-    });
-  }
-
-  // For all other requests, pass through and inject CORS headers on the response
-  const res = NextResponse.next();
-  const headers = corsHeaders();
-  for (const [key, value] of Object.entries(headers)) {
-    res.headers.set(key, value);
-  }
-  return res;
-}
+import { type NextRequest, NextResponse } from 'next/server'
+import { updateSession } from '@/utils/supabase/middleware'
 
 function corsHeaders(): Record<string, string> {
   return {
@@ -31,6 +9,28 @@ function corsHeaders(): Record<string, string> {
   };
 }
 
+export async function proxy(request: NextRequest) {
+  if (request.method === 'OPTIONS') {
+    return new NextResponse(null, {
+      status: 204,
+      headers: corsHeaders(),
+    });
+  }
+
+  const response = await updateSession(request);
+
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    const headers = corsHeaders();
+    for (const [key, value] of Object.entries(headers)) {
+      response.headers.set(key, value);
+    }
+  }
+
+  return response;
+}
+
 export const config = {
-  matcher: '/api/:path*',
-};
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}

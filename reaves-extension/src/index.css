@@ -203,7 +203,20 @@ html, body, #root {
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+.spinner-gold {
+  border-top-color: #FDB927;
+  filter: drop-shadow(0 0 4px rgba(253, 185, 39, 0.45));
+}
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Welcome badge */
+.welcome-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #FDB927;
+  letter-spacing: 0.03em;
+  opacity: 0.9;
+}
 
 .flex-center { display: flex; align-items: center; justify-content: center; }
 .flex-between { display: flex; align-items: center; justify-content: space-between; }
@@ -547,3 +560,349 @@ html, body, #root {
 .analyze-send-btn:hover { background: rgba(255,255,255,0.06); }
 .analyze-send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
+/* ─── MockLogin ──────────────────────────────────────────────────────────── */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #0c0615 0%, #1a0a2e 40%, #0d0b1a 100%);
+  overflow: hidden;
+  z-index: 999;
+}
+
+/* Floating particles */
+.login-particle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.15;
+  filter: blur(40px);
+  pointer-events: none;
+}
+.login-particle.p1 {
+  width: 200px; height: 200px;
+  background: #7c3aed;
+  top: -40px; right: -60px;
+  animation: loginFloat 8s ease-in-out infinite;
+}
+.login-particle.p2 {
+  width: 140px; height: 140px;
+  background: #FDB927;
+  bottom: 10%; left: -30px;
+  animation: loginFloat 10s ease-in-out infinite reverse;
+}
+.login-particle.p3 {
+  width: 100px; height: 100px;
+  background: #a78bfa;
+  top: 50%; right: 20%;
+  animation: loginFloat 12s ease-in-out infinite 2s;
+}
+@keyframes loginFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-20px) scale(1.1); }
+}
+
+/* Card */
+.login-card {
+  position: relative;
+  width: 280px;
+  padding: 28px 24px 22px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeUp 0.5s ease both;
+}
+
+/* Logo */
+.login-logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.login-logo-icon {
+  font-size: 22px;
+  line-height: 1;
+  background: linear-gradient(135deg, #FDB927, #f0a000);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 8px rgba(253, 185, 39, 0.4));
+}
+.login-logo-text {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.login-subtitle {
+  font-size: 9px;
+  text-align: center;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: -8px;
+}
+
+/* Inputs */
+.login-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.login-input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.login-input:focus {
+  border-color: rgba(253, 185, 39, 0.5);
+  box-shadow: 0 0 0 3px rgba(253, 185, 39, 0.1);
+}
+.login-input:disabled {
+  opacity: 0.5;
+}
+
+/* Button */
+.login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #FDB927, #e5a520);
+  color: #0c0615;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(253, 185, 39, 0.3);
+  margin-top: 4px;
+}
+.login-btn:hover:not(:disabled) {
+  box-shadow: 0 6px 28px rgba(253, 185, 39, 0.45);
+  transform: translateY(-1px);
+}
+.login-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+.login-btn:disabled {
+  opacity: 0.85;
+  cursor: wait;
+}
+
+/* Dark spinner for the gold button */
+.spinner-dark {
+  border-color: rgba(12, 6, 21, 0.2);
+  border-top-color: #0c0615;
+}
+
+.login-footer {
+  font-size: 9px;
+  text-align: center;
+  color: var(--text-muted);
+  opacity: 0.5;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Header Component ──────────────────────────────────────────────────── */
+.header-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #a78bfa;
+}
+
+.header-logo-text {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Toggle switches in header */
+.header-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.header-toggle-label:hover .header-toggle-text {
+  color: rgba(255,255,255,0.6);
+}
+
+.header-toggle-text {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  transition: color 0.15s;
+  user-select: none;
+}
+
+.header-toggle-track {
+  position: relative;
+  width: 28px;
+  height: 16px;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.header-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* ─── GlossaryTooltip (hover interaction) ────────────────────────────────── */
+.glossary-tooltip-wrap {
+  position: relative;
+  display: inline;
+}
+
+.glossary-tooltip-term {
+  border-bottom: 1px dashed rgba(253, 185, 39, 0.4);
+  cursor: help;
+  transition: border-color 0.15s, color 0.15s;
+}
+.glossary-tooltip-wrap:hover .glossary-tooltip-term {
+  border-color: #FDB927;
+  color: #FDB927;
+}
+
+.glossary-tooltip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  min-width: 220px;
+  max-width: 280px;
+  padding: 12px 14px;
+  background: #111118;
+  border: 1px solid #FDB927;
+  border-radius: 10px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(253, 185, 39, 0.15),
+    0 0 20px rgba(253, 185, 39, 0.08);
+  z-index: 200;
+  animation: tooltipFadeIn 0.2s ease both;
+  pointer-events: auto;
+}
+
+@keyframes tooltipFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.glossary-tooltip-word {
+  font-size: 12px;
+  font-weight: 700;
+  color: #FDB927;
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+
+.glossary-tooltip-def {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.glossary-tooltip-source {
+  font-size: 9px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ─── GlossaryPopup (standalone sidebar card) ────────────────────────────── */
+.glossary-popup-card {
+  background: linear-gradient(135deg, rgba(253, 185, 39, 0.08), rgba(124, 58, 237, 0.06));
+  border: 1px solid rgba(253, 185, 39, 0.3);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 0 16px rgba(253, 185, 39, 0.06);
+}
+
+.glossary-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.glossary-popup-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #FDB927;
+}
+
+.glossary-popup-word {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.glossary-popup-def {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.glossary-popup-source {
+  font-size: 9px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+}

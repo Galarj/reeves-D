@@ -3,11 +3,16 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+const apiKey = process.env.GEMINI_API_KEY || '';
+if (!apiKey || apiKey.startsWith('REPLACE_WITH')) {
+  throw new Error('Lakers Alert: Gemini API Key is missing!');
+}
+
 // Initialize the free Gemini client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const genAI = new GoogleGenerativeAI(apiKey);
 
 export async function callClaude(systemPrompt: string, userMessage: string): Promise<unknown> {
-  // We use Gemini 1.5 Flash because it is incredibly fast and completely free
+  // We use Gemini 2.0 Flash because it is incredibly fast and completely free
   const model = genAI.getGenerativeModel({
     model: 'gemini-2.5-flash',
     systemInstruction: systemPrompt,

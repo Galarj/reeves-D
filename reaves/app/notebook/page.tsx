@@ -4,13 +4,16 @@ import { useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft, BookOpen, ChevronDown, Plus, Search,
-  Trash2, Pencil, Check, X, ExternalLink, MessageSquare, BookMarked
+  Trash2, Pencil, Check, X, ExternalLink, MessageSquare, BookMarked,
+  Cloud, Shield
 } from 'lucide-react';
 import NotebookPanel from '@/components/notebook/NotebookPanel';
 import ThesisBuilder from '@/components/notebook/ThesisBuilder';
 import NotebookChat from '@/components/notebook/NotebookChat';
 import SavedThesesPanel from '@/components/notebook/SavedThesesPanel';
 import { useNotebooks } from '@/lib/notebook-context';
+import { useCloudSources, type CloudSource } from '@/lib/useCloudSources';
+import { useUser } from '@/lib/useUser';
 import { CitationFormat, Notebook } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -287,6 +290,7 @@ function NotebookDetail({ notebook, onBack }: { notebook: Notebook; onBack: () =
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function NotebookPage() {
+  const { profile } = useUser();
   const {
     notebooks,
     activeNotebookId,
@@ -323,15 +327,26 @@ export default function NotebookPage() {
     <div className="min-h-screen bg-[#0a0a0f] bg-mesh">
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
-          <Link href="/dashboard" className="flex items-center gap-2 text-white/50 hover:text-white/80 transition-colors text-sm">
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </Link>
-          <div className="h-4 w-px bg-white/10" />
-          <span className="font-display font-bold text-lg tracking-tight gradient-text">
-            {openNotebook ? openNotebook.name : 'My Notebooks'}
-          </span>
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard" className="flex items-center gap-2 text-white/50 hover:text-white/80 transition-colors text-sm">
+              <ArrowLeft className="h-4 w-4" />
+              Dashboard
+            </Link>
+            <div className="h-4 w-px bg-white/10" />
+            <span className="font-display font-bold text-lg tracking-tight gradient-text">
+              {openNotebook ? openNotebook.name : 'My Notebooks'}
+            </span>
+          </div>
+          {/* Profile badge */}
+          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/[0.03]">
+            <div className="h-6 w-6 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-[10px] font-bold text-white">
+              {profile?.full_name ? profile.full_name.substring(0,2).toUpperCase() : '??'}
+            </div>
+            <span className="text-xs font-medium text-white/60">
+              {profile ? `${profile.full_name}${profile.university ? ` | ${profile.university}` : ''}` : 'Loading...'}
+            </span>
+          </div>
         </div>
       </nav>
 
@@ -408,6 +423,50 @@ export default function NotebookPage() {
           </div>
         )}
       </main>
+    </div>
+  );
+}
+
+// ── Cloud Source Card ────────────────────────────────────────────────────────────
+function CloudSourceCard({ source }: { source: CloudSource }) {
+  const scoreColor =
+    source.trust_score >= 70 ? 'text-emerald-400 bg-emerald-500/15'
+    : source.trust_score >= 40 ? 'text-amber-400 bg-amber-500/15'
+    : 'text-rose-400 bg-rose-500/15';
+
+  return (
+    <div className="rounded-2xl border border-violet-500/20 bg-violet-500/[0.04] p-4 transition-all hover:border-violet-500/35 hover:bg-violet-500/[0.07] duration-200">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-white/85 leading-snug">{source.title}</p>
+          <p className="text-xs text-white/35 mt-1">
+            {source.authors} · {source.year} · {source.journal}
+          </p>
+        </div>
+        <span className={`text-xs font-bold px-2 py-0.5 rounded-md flex-shrink-0 ${scoreColor}`}>
+          {source.trust_score}
+        </span>
+      </div>
+      {source.abstract && (
+        <p className="text-xs text-white/30 mt-2 line-clamp-2 leading-relaxed">
+          {source.abstract}
+        </p>
+      )}
+      <div className="flex items-center gap-2 mt-3">
+        <span className="flex items-center gap-1 text-[10px] text-violet-400/70 font-medium">
+          <Cloud className="h-3 w-3" /> Synced from Extension
+        </span>
+        {source.doi && (
+          <a
+            href={`https://doi.org/${source.doi}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] text-white/30 hover:text-white/60 transition-colors ml-auto"
+          >
+            Open DOI ↗
+          </a>
+        )}
+      </div>
     </div>
   );
 }

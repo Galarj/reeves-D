@@ -1,5 +1,6 @@
 import { ArrowRight, BookOpen, Brain, Microscope, Shield, Sparkles, Target } from 'lucide-react';
 import Link from 'next/link';
+import Header from '@/components/Header';
 
 const FEATURES = [
   {
@@ -50,18 +51,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#0a0a0f] bg-mesh overflow-hidden">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <span className="font-display font-bold text-lg tracking-tight gradient-text">REAVES</span>
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all duration-200 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-105"
-          >
-            Start Researching
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </nav>
+      <Header />
 
       {/* Hero */}
       <section className="pt-32 pb-20 px-6">

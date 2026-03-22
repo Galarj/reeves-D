@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { callAPI } from '../api';
 import { readNotebooks, writeNotebooks } from '../notebook-bridge';
+import { saveToNotebook as syncToCloud } from '../lib/supabase-actions';
 import type { ClarifierResponse, SearchResult, Source, Notebook } from '../types';
 
 interface Props {
@@ -19,6 +20,7 @@ export default function AskView({ initialText, onTextConsumed }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
+  const [syncingId, setSyncingId] = useState<string | null>(null); // source.id currently syncing
 
   // Notebook picker state
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
@@ -126,6 +128,16 @@ export default function AskView({ initialText, onTextConsumed }: Props) {
       nbs[idx].updated_at = new Date().toISOString();
       setSavedIds((prev) => new Set(prev).add(source.id));
       showToast(`Saved to "${nbs[idx].name}"`);
+
+      // ─── Cloud sync ───────────────────────────────────
+      setSyncingId(source.id);
+      const result = await syncToCloud(source);
+      setSyncingId(null);
+      if (result.ok) {
+        showToast('☁️ Synced to Cloud');
+      } else {
+        showToast(`⚠ Cloud sync failed: ${result.error}`);
+      }
     }
 
     await writeNotebooks({ notebooks: nbs, activeId: aId });
@@ -311,8 +323,11 @@ export default function AskView({ initialText, onTextConsumed }: Props) {
                     className={`btn btn-sm ${saved ? 'btn-ghost' : 'btn-primary'}`}
                     onClick={() => togglePicker(source.id)}
                     style={{ marginLeft: 'auto' }}
+                    disabled={syncingId === source.id}
                   >
-                    {saved ? '✓ Saved' : '＋ Save'}
+                    {syncingId === source.id ? (
+                      <><div className="spinner spinner-gold" />Syncing to Cloud…</>
+                    ) : saved ? '✓ Saved' : '＋ Save'}
                   </button>
                 </div>
 

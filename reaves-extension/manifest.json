@@ -13,8 +13,12 @@
   ],
   "host_permissions": [
     "<all_urls>",
-    "http://localhost:3000/*"
+    "http://localhost:3000/*",
+    "https://reaves-f-mol1-3isvuqyw6-galarjs-projects.vercel.app/*"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' http://localhost:3000 https://reaves-f-mol1-3isvuqyw6-galarjs-projects.vercel.app;"
+  },
   "background": {
     "service_worker": "background.js",
     "type": "module"

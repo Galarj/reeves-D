@@ -143,7 +143,7 @@ export default function HomePage() {
       <footer className="border-t border-white/5 py-8 px-6 text-center">
         <p className="text-xs text-white/25">
           REAVES · HackFest 2026: Axis · Built by the Los Oliver Lakers ·{' '}
-          Powered by Anthropic Claude, Supabase, Next.js, Vercel
+          Powered by Google Gemini 1.5 Flash, Supabase, Next.js, Vercel
         </p>
       </footer>
     </main>

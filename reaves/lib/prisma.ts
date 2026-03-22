@@ -1,7 +1,9 @@
+// lib/prisma.ts — Prisma 7 singleton with PrismaPg driver adapter
 import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 
+// DATABASE_URL should point to the Supabase *pooled* connection (port 6543)
 const connectionString = process.env.DATABASE_URL
 
 const globalForPrisma = globalThis as unknown as {
@@ -9,18 +11,15 @@ const globalForPrisma = globalThis as unknown as {
   pool: Pool | undefined
 }
 
-if (!globalForPrisma.pool) {
-  globalForPrisma.pool = new Pool({ connectionString })
+function makePrisma() {
+  if (!globalForPrisma.pool) {
+    globalForPrisma.pool = new Pool({ connectionString })
+  }
+  const adapter = new PrismaPg(globalForPrisma.pool as any)
+  return new PrismaClient({ adapter } as any)
 }
 
-const pool = globalForPrisma.pool
-const adapter = new PrismaPg(pool as any)
-
-const prismaClientSingleton = () => {
-  return new PrismaClient({ adapter })
-}
-
-const prisma = globalForPrisma.prisma ?? prismaClientSingleton()
+const prisma = globalForPrisma.prisma ?? makePrisma()
 
 export default prisma
 

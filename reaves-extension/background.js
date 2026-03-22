@@ -9,7 +9,7 @@
  */
 
 // Production API base — hardcoded because background.js is NOT processed by Vite.
-const WEB_APP_BASE = 'https://reaves-f-mol1-3isvuqyw6-galarjs-projects.vercel.app';
+const WEB_APP_BASE = 'https://reaves-f-mol1.vercel.app';
 console.log('[REAVES] Service Worker loaded. API target:', WEB_APP_BASE);
 
 // ─── Smart Glossary: instant lookup table ─────────────────────────────────────
@@ -145,7 +145,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // ── Smart Glossary Hover ──────────────────────────────────────────────────
   if (type === 'GET_DEFINITION') {
     const rawWord = (message.word ?? '').trim();
-    const key     = rawWord.toLowerCase();
+    const key = rawWord.toLowerCase();
 
     // 1. Fast path — hardcoded jargon map (instant, no network)
     if (JARGON_MAP[key]) {

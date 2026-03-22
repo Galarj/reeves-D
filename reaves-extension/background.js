@@ -8,8 +8,9 @@
  * - Manage session token in chrome.storage.session
  */
 
-import { BASE_URL } from './src/config.js';
-const WEB_APP_BASE = BASE_URL;
+// Production API base — hardcoded because background.js is NOT processed by Vite.
+// For local development, change this to 'http://localhost:3000'.
+const WEB_APP_BASE = 'https://reaves-f-mol1-3isvuqyw6-galarjs-projects.vercel.app';
 
 // ─── Smart Glossary: instant lookup table ─────────────────────────────────────
 // Matched by lowercase key. Returns the same shape as /api/define.

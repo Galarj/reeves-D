@@ -9,7 +9,7 @@
 import type { Notebook } from './types';
 
 const STORAGE_KEY = 'reaves-notebooks';
-const REAVES_ORIGINS = ['https://reaves-f-mol1-3isvuqyw6-galarjs-projects.vercel.app'];
+const REAVES_ORIGINS = ['https://reaves-f-mol1.vercel.app'];
 
 interface NotebookState {
   notebooks: Notebook[];

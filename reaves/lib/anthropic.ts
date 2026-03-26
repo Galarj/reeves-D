@@ -3,36 +3,61 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const apiKey = process.env.GEMINI_API_KEY || '';
-if (!apiKey || apiKey.startsWith('REPLACE_WITH')) {
-  throw new Error('Lakers Alert: Gemini API Key is missing!');
-}
-
-// Initialize the free Gemini client
-const genAI = new GoogleGenerativeAI(apiKey);
+// 1. THE KEY POOL: Load all keys and filter out empties
+const apiKeys = [
+  process.env.GEMINI_API_KEY,
+  process.env.GEMINI_API_KEY_2,
+  process.env.GEMINI_API_KEY_3,
+].filter(Boolean) as string[];
 
 export async function callClaude(systemPrompt: string, userMessage: string): Promise<unknown> {
-  // We use Gemini 2.0 Flash because it is incredibly fast and completely free
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
-    systemInstruction: systemPrompt,
-    generationConfig: {
-      temperature: 0.2,
-      // This is the magic bullet: forces perfect JSON output
-      responseMimeType: "application/json",
+  if (apiKeys.length === 0) {
+    throw new Error('Lakers Alert: All Gemini API Keys are missing from .env!');
+  }
+
+  let rawText = null;
+
+  // 2. THE WATERFALL LOOP
+  for (let i = 0; i < apiKeys.length; i++) {
+    try {
+      console.log(`[lib/anthropic] Attempting inference with Key #${i + 1}...`);
+
+      // Initialize the client dynamically with the current key
+      const genAI = new GoogleGenerativeAI(apiKeys[i]);
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-2.5-flash',
+        systemInstruction: systemPrompt,
+        generationConfig: {
+          temperature: 0.2,
+          // This is the magic bullet: forces perfect JSON output
+          responseMimeType: "application/json",
+        }
+      });
+
+      const result = await model.generateContent(userMessage);
+      rawText = result.response.text();
+
+      console.log(`[lib/anthropic] Success with Key #${i + 1}! Breaking loop.`);
+      break; // It worked! Stop the loop.
+
+    } catch (error: any) {
+      console.warn(`[lib/anthropic] Key #${i + 1} failed: ${error.message}. Cascading...`);
+      // Loop automatically continues to the next key
     }
-  });
+  }
 
+  // 3. THE FAILSAFE: If all keys burn out
+  if (!rawText) {
+    console.error("[lib/anthropic] CRITICAL: All API keys exhausted.");
+    throw new Error("AI Services are experiencing maximum load. Please try again later.");
+  }
+
+  // 4. THE JSON PARSER (Keeping your brilliant stripping logic safe)
   try {
-    const result = await model.generateContent(userMessage);
-    const rawText = result.response.text();
-
-    // Keep your brilliant markdown-stripping logic just in case
     const cleaned = rawText.trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
-
     return JSON.parse(cleaned);
-  } catch (error: any) {
-    console.error("Gemini API Error:", error.message);
-    throw new Error(`AI generated invalid data or failed: ${error.message}`);
+  } catch (parseError: any) {
+    console.error("[lib/anthropic] JSON Parse Error:", parseError.message);
+    throw new Error(`AI generated invalid JSON data: ${parseError.message}`);
   }
 }

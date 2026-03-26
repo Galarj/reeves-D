@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { THESIS_CHAT_SYSTEM_PROMPT } from '@/prompts/thesis-chat';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+// 1. THE KEY POOL: Define your waterfall keys here.
+const apiKeys = [
+  process.env.GEMINI_API_KEY,
+  process.env.GEMINI_API_KEY_2,
+  process.env.GEMINI_API_KEY_3,
+].filter(Boolean) as string[];
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,15 +17,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'messages array is required' }, { status: 400 });
     }
 
-    // Build thesis context block
+    if (apiKeys.length === 0) {
+      console.error('[/api/thesis-chat] ERROR: No Gemini API keys found in .env');
+      return NextResponse.json({ error: 'Server configuration error.' }, { status: 500 });
+    }
+
+    // --- YOUR THESIS & SOURCE CONTEXT STAYS INTACT ---
     const thesisContext = `
-THESIS STATEMENT: ${thesis.thesis}
-STANCE: ${thesis.stance}
-RESEARCH GAP FILLED: ${thesis.gap_it_fills}
-SUPPORTING SOURCES: ${(thesis.supporting_sources || []).join(', ')}
+THESIS STATEMENT: ${thesis?.thesis}
+STANCE: ${thesis?.stance}
+RESEARCH GAP FILLED: ${thesis?.gap_it_fills}
+SUPPORTING SOURCES: ${(thesis?.supporting_sources || []).join(', ')}
 `.trim();
 
-    // Build sources context
     const sourceContext = (sources || [])
       .map((s: any, i: number) =>
         `[Source ${i + 1}] "${s.title}" by ${s.authors} (${s.year})\nAbstract: ${s.abstract}`
@@ -31,25 +40,52 @@ SUPPORTING SOURCES: ${(thesis.supporting_sources || []).join(', ')}
       '\n\n--- THESIS CONTEXT ---\n\n' + thesisContext +
       '\n\n--- NOTEBOOK SOURCES ---\n\n' + sourceContext;
 
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      systemInstruction: systemPrompt,
-      generationConfig: { temperature: 0.5 },
-    });
-
     const history = messages.slice(0, -1).map((m: any) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }],
     }));
 
-    const chat = model.startChat({ history });
     const lastMessage = messages[messages.length - 1].content;
-    const result = await chat.sendMessage(lastMessage);
-    const reply = result.response.text();
+    let reply = null;
+
+    // 2. THE WATERFALL LOOP
+    for (let i = 0; i < apiKeys.length; i++) {
+      try {
+        console.log(`[/api/thesis-chat] Attempting inference with Key #${i + 1}...`);
+
+        // Initialize Gemini dynamically with the current key
+        const genAI = new GoogleGenerativeAI(apiKeys[i]);
+        const model = genAI.getGenerativeModel({
+          model: 'gemini-2.5-flash',
+          systemInstruction: systemPrompt,
+          generationConfig: { temperature: 0.5 },
+        });
+
+        const chat = model.startChat({ history });
+        const result = await chat.sendMessage(lastMessage);
+        reply = result.response.text();
+
+        console.log(`[/api/thesis-chat] Success with Key #${i + 1}! Breaking loop.`);
+        break; // Stop the loop on success
+
+      } catch (error: any) {
+        console.warn(`[/api/thesis-chat] Key #${i + 1} failed: ${error.message}. Cascading...`);
+        // Loop automatically continues to the next backup key
+      }
+    }
+
+    // 3. THE FAILSAFE
+    if (!reply) {
+      console.error('[/api/thesis-chat] CRITICAL: All API keys exhausted.');
+      return NextResponse.json(
+        { error: 'AI Services are experiencing maximum load. Please try again later.' },
+        { status: 503 }
+      );
+    }
 
     return NextResponse.json({ reply });
   } catch (error) {
-    console.error('[/api/thesis-chat]', error);
+    console.error('[/api/thesis-chat] Fatal Error:', error);
     return NextResponse.json(
       { error: 'Failed to generate thesis chat response', details: String(error) },
       { status: 500 }

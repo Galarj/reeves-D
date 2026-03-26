@@ -32,6 +32,8 @@ export default function SourceCard({
   const [showTrust, setShowTrust] = useState(false);
   const [showAbstract, setShowAbstract] = useState(false);
 
+  const isValidDOI = (doi?: string) => doi?.startsWith('10.');
+
   const trustColor = getTrustColor(source.trust_score);
   const trustBg = getTrustBg(source.trust_score);
   const trustLabel = getTrustLabel(source.trust_score);
@@ -117,7 +119,7 @@ export default function SourceCard({
             Trust breakdown
           </button>
 
-          {source.doi && (
+          {isValidDOI(source.doi) ? (
             <a
               href={`https://doi.org/${source.doi}`}
               target="_blank"
@@ -127,6 +129,10 @@ export default function SourceCard({
               <ExternalLink className="h-3 w-3" />
               DOI
             </a>
+          ) : (
+            <span className="text-white/30 text-xs italic ml-auto">
+              No DOI available
+            </span>
           )}
         </div>
       </div>

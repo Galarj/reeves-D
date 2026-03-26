@@ -39,8 +39,8 @@ Students today face an overwhelming amount of information online, but accessing 
 |---|---|
 | Natural-language query input | Student types a research question in plain English |
 | AI query clarifier | Before searching, AI asks 1 smart question to narrow the angle |
-| Source discovery | Returns 5 relevant academic sources per search |
-| Transparent trust scoring | 4-factor credibility breakdown per source: peer-reviewed, citation count, author H-index, recency |
+| Source discovery | Returns 10 relevant academic sources per search |
+| Transparent trust scoring | 5-factor credibility breakdown per source: peer-reviewed, citation count, author H-index, recency |
 | AI reasoning per source | One-sentence explanation of why each source scored what it scored |
 | AI synthesis engine | Cross-source summary identifying consensus, conflict, and key findings |
 | Research gap detector | AI surfaces 3 unanswered questions in the literature, each with a suggested research angle |

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
-import { BookOpen, Home, Loader2, AlertCircle, Plus, ChevronDown, Sparkles, RefreshCw } from 'lucide-react';
+import { BookOpen, Home, Loader2, AlertCircle, Plus, ChevronDown, Sparkles, RefreshCw, ArrowUpDown } from 'lucide-react';
 import SearchBar from '@/components/search/SearchBar';
 import ClarifierCard from '@/components/search/ClarifierCard';
 import SourceCard from '@/components/results/SourceCard';
@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showNbPicker, setShowNbPicker] = useState(false);
   const [newNbName, setNewNbName] = useState('');
+  const [sortBy, setSortBy] = useState<'relevance' | 'trust'>('relevance');
 
   const {
     notebooks,
@@ -202,6 +203,10 @@ export default function DashboardPage() {
   const entries = activeNotebook?.entries ?? [];
   const isSearching = step === 'searching';
 
+  const sortedSources = [...(searchResult?.sources ?? [])].sort((a, b) =>
+    sortBy === 'trust' ? b.trust_score - a.trust_score : 0
+  );
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] bg-mesh flex flex-col">
       {/* Top nav */}
@@ -313,10 +318,35 @@ export default function DashboardPage() {
 
                   {/* ── Left Column: Source Cards ── */}
                   <div className="lg:col-span-7 lg:order-first space-y-4">
-                    <h2 className="text-xs font-medium text-white/40 uppercase tracking-wider">
-                      {searchResult.sources?.length ?? 0} Sources Found
-                    </h2>
-                    {(searchResult.sources ?? []).map((source) => (
+                    <div className="flex items-center justify-between gap-3">
+                      <h2 className="text-xs font-medium text-white/40 uppercase tracking-wider">
+                        {searchResult.sources?.length ?? 0} Sources Found
+                      </h2>
+                      <div className="flex bg-white/5 rounded-lg p-1 border border-white/10 backdrop-blur-md">
+                        <button
+                          onClick={() => setSortBy('relevance')}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
+                            sortBy === 'relevance'
+                              ? 'bg-white/10 text-white shadow-sm'
+                              : 'text-white/40 hover:text-white/70'
+                          }`}
+                        >
+                          Relevance
+                        </button>
+                        <button
+                          onClick={() => setSortBy('trust')}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
+                            sortBy === 'trust'
+                              ? 'bg-[#FDB927]/20 text-[#FDB927] border border-[#FDB927]/30 shadow-sm'
+                              : 'text-white/40 hover:text-white/70'
+                          }`}
+                        >
+                          <ArrowUpDown className="h-3 w-3" />
+                          Trust Score
+                        </button>
+                      </div>
+                    </div>
+                    {sortedSources.map((source) => (
                       <SourceCard
                         key={source.id}
                         source={source}

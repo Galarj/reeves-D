@@ -78,13 +78,8 @@ export default function HomePage() {
       {/* ── Inline Nav (no external component import) ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06] bg-[#06060e]/70 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-6 h-[60px] flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-violet-500/25">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
-            <span className="font-display font-bold text-lg tracking-tight bg-gradient-to-r from-violet-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent">
-              REAVES
-            </span>
+          <Link href="/" className="font-display font-bold text-lg tracking-tight bg-gradient-to-r from-violet-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent">
+            REAVES
           </Link>
 
           <div className="flex items-center gap-3">

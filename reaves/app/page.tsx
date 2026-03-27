@@ -19,7 +19,7 @@ const FEATURES = [
   {
     icon: Shield,
     label: 'Transparent Trust Scoring',
-    desc: '4-factor credibility breakdown per source — with AI reasoning you can actually read.',
+    desc: '5-factor credibility breakdown per source — with AI reasoning you can actually read.',
     gradient: 'from-violet-500 to-purple-600',
     glow: 'shadow-violet-500/20',
   },
@@ -106,9 +106,8 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
           <div
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border border-violet-500/20 bg-violet-500/[0.08] text-sm text-violet-300/90 mb-8 transition-all duration-700 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border border-violet-500/20 bg-violet-500/[0.08] text-sm text-violet-300/90 mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+              }`}
           >
             <Sparkles className="h-3.5 w-3.5 text-violet-400" />
             Brought to you by Los Oliver Lakers · HackFest 2026: Axis
@@ -116,9 +115,8 @@ export default function HomePage() {
 
           {/* Headline */}
           <h1
-            className={`font-display text-5xl sm:text-6xl md:text-7xl font-bold leading-[1.1] tracking-tight mb-6 transition-all duration-700 delay-100 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
+            className={`font-display text-5xl sm:text-6xl md:text-7xl font-bold leading-[1.1] tracking-tight mb-6 transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+              }`}
           >
             <span className="text-white">Research that </span>
             <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
@@ -132,9 +130,8 @@ export default function HomePage() {
 
           {/* Subtext */}
           <p
-            className={`text-lg md:text-xl text-white/40 max-w-2xl mx-auto leading-relaxed mb-10 transition-all duration-700 delay-200 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
+            className={`text-lg md:text-xl text-white/40 max-w-2xl mx-auto leading-relaxed mb-10 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+              }`}
           >
             REAVES validates every source decision — scoring credibility transparently,
             synthesizing across findings, detecting research gaps, and scaffolding your
@@ -143,9 +140,8 @@ export default function HomePage() {
 
           {/* CTA Buttons */}
           <div
-            className={`flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 transition-all duration-700 delay-300 ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
+            className={`flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+              }`}
           >
             {/* Primary — Purple Glow */}
             <Link
@@ -171,9 +167,8 @@ export default function HomePage() {
 
           {/* Pipeline Steps */}
           <div
-            className={`flex flex-wrap items-center justify-center gap-2 transition-all duration-700 delay-[400ms] ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            }`}
+            className={`flex flex-wrap items-center justify-center gap-2 transition-all duration-700 delay-[400ms] ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+              }`}
           >
             {PIPELINE_STEPS.map((step, i, arr) => (
               <span key={step} className="flex items-center gap-2">
@@ -205,9 +200,8 @@ export default function HomePage() {
           {FEATURES.map(({ icon: Icon, label, desc, gradient, glow }, idx) => (
             <div
               key={label}
-              className={`group rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm p-6 transition-all duration-500 hover:border-white/[0.12] hover:bg-white/[0.04] hover:scale-[1.02] hover:shadow-lg ${glow} ${
-                mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
+              className={`group rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm p-6 transition-all duration-500 hover:border-white/[0.12] hover:bg-white/[0.04] hover:scale-[1.02] hover:shadow-lg ${glow} ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
               style={{ transitionDelay: `${500 + idx * 100}ms` }}
             >
               <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 shadow-lg ${glow} group-hover:scale-110 transition-transform duration-300`}>

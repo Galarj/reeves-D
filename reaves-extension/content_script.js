@@ -211,7 +211,7 @@
   // ════════════════════════════════════════════════════════════════════════════
   // 4. EVIDENCE HIGHLIGHTER
   // ════════════════════════════════════════════════════════════════════════════
-  chrome.runtime.onMessage.addListener(function (message) {
+  chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     if (message.type === 'DO_HIGHLIGHT') {
       clearHighlights();
       var excerpts = message.excerpts || [];
@@ -222,6 +222,57 @@
     if (message.type === 'DO_CLEAR_HIGHLIGHTS') {
       clearHighlights();
     }
+    if (message.type === 'SCRAPE_CITATION_COUNT') {
+      try {
+        var count = null;
+        var metaSelectors = [
+          'meta[name="citation_count"]',
+          'meta[name="prism.citationCount"]',
+          'meta[name="dc.citationCount"]',
+          'meta[name="scholarly.citations"]',
+          'meta[property="og:citation_count"]'
+        ];
+        
+        for (var i = 0; i < metaSelectors.length; i++) {
+          var meta = document.querySelector(metaSelectors[i]);
+          if (meta && meta.getAttribute('content')) {
+            var val = parseInt(meta.getAttribute('content'), 10);
+            if (!isNaN(val)) { count = val; break; }
+          }
+        }
+
+        if (count === null) {
+          var domSelectors = [
+            '[data-test="citation-count"]',
+            '.c-article-identifiers__item',
+            '.citation-count',
+            '.metrics-count-citations',
+            '#citation-count-value'
+          ];
+          for (var j = 0; j < domSelectors.length; j++) {
+            var el = document.querySelector(domSelectors[j]);
+            if (el && el.textContent) {
+              var match = el.textContent.match(/(\d+)/);
+              if (match) {
+                count = parseInt(match[1], 10);
+                break;
+              }
+            }
+          }
+        }
+
+        if (count !== null && !isNaN(count)) {
+          sendResponse({ count: count });
+        } else {
+          sendResponse({ count: null });
+        }
+      } catch (e) {
+        console.warn('[REAVES] Error scraping citation:', e);
+        sendResponse({ count: null });
+      }
+    }
+    // Return true for async response if needed, although sendResponse here is sync.
+    // However, it's good practice.
   });
 
   /**

@@ -3,6 +3,7 @@
 export interface TrustFactors {
   peer_reviewed: boolean;
   citation_count: number;
+  citation_scraped?: boolean;
   author_hindex: number;
   recency_years: number;
   open_access: boolean;

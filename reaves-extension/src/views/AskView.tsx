@@ -98,6 +98,28 @@ export default function AskView({ initialText, onTextConsumed }: Props) {
       setStep('input');
       return;
     }
+
+    // FALLBACK LOGIC: Check current active tab for live citation count
+    try {
+      const [tab] = await new Promise<chrome.tabs.Tab[]>((res) => chrome.tabs.query({ active: true, currentWindow: true }, res));
+      if (tab?.id) {
+        chrome.tabs.sendMessage(tab.id, { type: 'SCRAPE_CITATION_COUNT' }, (response) => {
+          if (!chrome.runtime.lastError && response?.count != null && !isNaN(response.count)) {
+            // Overwrite first source since that's likely the matching one for the page URL
+            if (res.data!.sources.length > 0) {
+              res.data!.sources[0].trust_factors.citation_count = response.count;
+              res.data!.sources[0].trust_factors.citation_scraped = true;
+            }
+          }
+          setResults(res.data!);
+          setStep('results');
+        });
+        return;
+      }
+    } catch (e) {
+      // Ignore extension messaging errors
+    }
+
     setResults(res.data);
     setStep('results');
   }

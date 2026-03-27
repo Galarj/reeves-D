@@ -10,11 +10,12 @@ interface TrustBreakdownProps {
   reason: string;
 }
 
-function FactorRow({ icon: Icon, label, value, positive }: {
+function FactorRow({ icon: Icon, label, value, positive, liveIndicator }: {
   icon: React.ElementType;
   label: string;
   value: string;
   positive: boolean;
+  liveIndicator?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
@@ -24,6 +25,9 @@ function FactorRow({ icon: Icon, label, value, positive }: {
       </div>
       <div className="flex items-center gap-1.5">
         <span className="text-xs font-medium text-white/80">{value}</span>
+        {liveIndicator && (
+          <span className="text-[9px] font-bold uppercase tracking-wider text-violet-400 bg-violet-400/10 px-1.5 py-0.5 rounded border border-violet-400/20 ml-1">Verified from Source</span>
+        )}
         {positive ? (
           <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
         ) : (
@@ -69,6 +73,7 @@ export default function TrustBreakdown({ score, factors, reason }: TrustBreakdow
           label="Citation Count"
           value={factors.citation_count.toLocaleString()}
           positive={factors.citation_count >= 50}
+          liveIndicator={factors.citation_scraped}
         />
         <FactorRow
           icon={Quote}

@@ -13,14 +13,14 @@
   ],
   "host_permissions": [
     "<all_urls>",
-    "https://reaves-f-mol1.vercel.app/*",
+    "https://reeves-d.vercel.app/*",
     "https://fxmudyjgfheriatuqphw.supabase.co/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://reaves-f-mol1.vercel.app https://fxmudyjgfheriatuqphw.supabase.co;"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://reeves-d.vercel.app https://fxmudyjgfheriatuqphw.supabase.co;"
   },
   "externally_connectable": {
-    "matches": ["https://reaves-f-mol1.vercel.app/*"]
+    "matches": ["https://reeves-d.vercel.app/*"]
   },
   "background": {
     "service_worker": "background.js",

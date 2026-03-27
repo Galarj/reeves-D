@@ -9,7 +9,7 @@
  */
 
 // Production API base — hardcoded because background.js is NOT processed by Vite.
-const WEB_APP_BASE = 'https://reaves-f-mol1.vercel.app';
+const WEB_APP_BASE = 'https://reeves-d.vercel.app';
 console.log('[REAVES] Service Worker loaded. API target:', WEB_APP_BASE);
 
 // ─── Smart Glossary: instant lookup table ─────────────────────────────────────

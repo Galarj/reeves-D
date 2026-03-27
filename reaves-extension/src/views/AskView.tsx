@@ -19,8 +19,9 @@ export default function AskView({ initialText, onTextConsumed }: Props) {
   const [refinedQuery, setRefinedQuery, h4] = useChromeStorageState('ask_refinedQuery', '');
   const [results, setResults, h5] = useChromeStorageState<SearchResult | null>('ask_results', null);
   const [error, setError, h6] = useChromeStorageState<string | null>('ask_error', null);
+  const [sortByTrust, setSortByTrust, h7] = useChromeStorageState<boolean>('ask_sort_trust', false);
   
-  const isHydrated = h1 && h2 && h3 && h4 && h5 && h6;
+  const isHydrated = h1 && h2 && h3 && h4 && h5 && h6 && h7;
 
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
@@ -278,13 +279,31 @@ export default function AskView({ initialText, onTextConsumed }: Props) {
       {step === 'results' && results && (
         <>
           <div className="flex-between mb-2">
-            <p className="section-label">{results.sources.length} sources found</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <p className="section-label" style={{ margin: 0 }}>{results.sources.length} sources found</p>
+              <button
+                className="btn btn-ghost"
+                onClick={() => setSortByTrust(!sortByTrust)}
+                style={{
+                  padding: '2px 6px',
+                  fontSize: 10,
+                  border: `1px solid ${sortByTrust ? 'var(--violet)' : 'transparent'}`,
+                  background: sortByTrust ? 'var(--violet-dim)' : 'transparent',
+                  color: sortByTrust ? 'var(--violet)' : 'var(--text-muted)',
+                  borderRadius: 4
+                }}
+              >
+                Sort: {sortByTrust ? 'Trust Score' : 'Relevance'}
+              </button>
+            </div>
             <button className="btn btn-ghost btn-sm" onClick={reset} style={{ padding: '3px 8px' }}>New search</button>
           </div>
 
-          {results.sources.map((source) => {
-            const saved = savedIds.has(source.id);
-            const pickerOpen = pickerOpenFor === source.id;
+          {[...results.sources]
+            .sort((a, b) => (sortByTrust ? b.trust_score - a.trust_score : 0))
+            .map((source) => {
+              const saved = savedIds.has(source.id);
+              const pickerOpen = pickerOpenFor === source.id;
             const trustProps = getTrustProps(source.trust_score);
             return (
               <div key={source.id} className="card fade-up">

@@ -63,10 +63,11 @@ ${JSON.stringify(papersPayload, null, 2)}`;
     };
 
     return NextResponse.json(result);
-  } catch (error) {
-    console.error('[/api/search]', error);
+  } catch (error: any) {
+    console.error('[/api/search] Full error:', error);
+    const message = error?.message || String(error);
     return NextResponse.json(
-      { error: 'Failed to search sources', details: String(error) },
+      { error: message },
       { status: 500 }
     );
   }

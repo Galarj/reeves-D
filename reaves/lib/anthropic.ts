@@ -20,6 +20,7 @@ export async function callClaude(systemPrompt: string, userMessage: string): Pro
   }
 
   let rawText: string | null = null;
+  let lastError: any = null;
 
   // 2. THE WATERFALL LOOP
   for (let i = 0; i < apiKeys.length; i++) {
@@ -43,6 +44,7 @@ export async function callClaude(systemPrompt: string, userMessage: string): Pro
       break; // Success — exit the loop
 
     } catch (error: any) {
+      lastError = error;
       const status = error?.status ?? error?.httpStatusCode ?? 0;
       const msg: string = error?.message || String(error);
 
@@ -73,10 +75,12 @@ export async function callClaude(systemPrompt: string, userMessage: string): Pro
     }
   }
 
-  // 3. THE FAILSAFE — all keys burned out
+  // 3. THE FAILSAFE — all keys burned out → surface the REAL error
   if (!rawText) {
-    console.error('[lib/anthropic] CRITICAL: All API keys exhausted. No response obtained.');
-    throw new Error('AI Services are experiencing maximum load. Please try again later.');
+    const realMessage = lastError?.message || String(lastError) || 'Unknown error';
+    const realStatus = lastError?.status ?? lastError?.httpStatusCode ?? 'N/A';
+    console.error(`[lib/anthropic] CRITICAL: All ${apiKeys.length} keys exhausted. Last error (status ${realStatus}): ${realMessage}`);
+    throw new Error(`All ${apiKeys.length} Gemini keys failed. Last error: ${realMessage}`);
   }
 
   // 4. THE JSON PARSER — strip markdown fences if present, then parse

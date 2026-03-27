@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { callAPI } from '../api';
+import { useChromeStorageState } from '../lib/useChromeStorageState';
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 type Mode = 'local' | 'global';
@@ -72,11 +73,13 @@ async function extractPageText(): Promise<string> {
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 export default function AnalyzePage() {
-  const [mode, setMode] = useState<Mode>('local');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [mode, setMode, h1] = useChromeStorageState<Mode>('analyze_mode', 'local');
+  const [messages, setMessages, h2] = useChromeStorageState<Message[]>('analyze_messages', []);
+  const [input, setInput, h3] = useChromeStorageState('analyze_input', '');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  const isHydrated = h1 && h2 && h3;
 
   const theme = themeFor(mode);
   const isGlobalMode = mode === 'global';
@@ -165,15 +168,29 @@ export default function AnalyzePage() {
   }, [input, mode, loading]);
 
   /* ─── Render ────────────────────────────────────────────────────────────── */
+  if (!isHydrated) {
+    return <div className="flex items-center justify-center p-8 text-white/30 text-xs">Loading chat...</div>;
+  }
+
   return (
     <div
-      className="analyze-container fade-up"
+      className="analyze-container fade-up relative"
       style={{
         border: `1px solid ${theme.border}`,
         boxShadow: `0 0 20px ${theme.glow}, inset 0 0 30px ${theme.dimGlow}`,
         transition: 'border-color 0.4s ease, box-shadow 0.4s ease',
       }}
     >
+      {/* ─── Clear Chat Button ─── */}
+      {messages.length > 0 && (
+         <button
+           onClick={() => { setMessages([]); setInput(''); }}
+           className="absolute right-3 top-3 text-[10px] uppercase font-bold tracking-widest text-white/30 hover:text-rose-400 transition-colors z-10"
+         >
+           Clear Chat
+         </button>
+      )}
+
       {/* ── Scope Toggle ─────────────────────────────────────────────────── */}
       <div className="scope-toggle">
         <button

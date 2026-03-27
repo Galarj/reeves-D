@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { callAPI } from '../api';
 import { readNotebooks, writeNotebooks } from '../notebook-bridge';
 import { saveToNotebook as syncToCloud } from '../lib/supabase-actions';
+import { useChromeStorageState } from '../lib/useChromeStorageState';
 import type { ClarifierResponse, SearchResult, Source, Notebook } from '../types';
 
 interface Props {
@@ -12,12 +13,15 @@ interface Props {
 type Step = 'input' | 'clarifying' | 'clarified' | 'searching' | 'results';
 
 export default function AskView({ initialText, onTextConsumed }: Props) {
-  const [query, setQuery] = useState('');
-  const [step, setStep] = useState<Step>('input');
-  const [clarifier, setClarifier] = useState<ClarifierResponse | null>(null);
-  const [refinedQuery, setRefinedQuery] = useState('');
-  const [results, setResults] = useState<SearchResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [query, setQuery, h1] = useChromeStorageState('ask_query', '');
+  const [step, setStep, h2] = useChromeStorageState<Step>('ask_step', 'input');
+  const [clarifier, setClarifier, h3] = useChromeStorageState<ClarifierResponse | null>('ask_clarifier', null);
+  const [refinedQuery, setRefinedQuery, h4] = useChromeStorageState('ask_refinedQuery', '');
+  const [results, setResults, h5] = useChromeStorageState<SearchResult | null>('ask_results', null);
+  const [error, setError, h6] = useChromeStorageState<string | null>('ask_error', null);
+  
+  const isHydrated = h1 && h2 && h3 && h4 && h5 && h6;
+
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
   const [syncingId, setSyncingId] = useState<string | null>(null); // source.id currently syncing
@@ -177,16 +181,18 @@ export default function AskView({ initialText, onTextConsumed }: Props) {
     setPickerOpenFor(null);
   }
 
-
-
   function getTrustProps(score: number) {
     if (score >= 80) return { color: '#34d399', bg: 'rgba(52, 211, 153, 0.2)', border: 'rgba(52, 211, 153, 0.3)', label: 'High Trust' };
     if (score >= 60) return { color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.2)', border: 'rgba(251, 191, 36, 0.3)', label: 'Moderate' };
     return { color: '#fb7185', bg: 'rgba(251, 113, 133, 0.2)', border: 'rgba(251, 113, 133, 0.3)', label: 'Low Trust' };
   }
 
+  if (!isHydrated) {
+    return <div className="flex items-center justify-center p-8 text-white/30 text-xs">Loading session...</div>;
+  }
+
   return (
-    <div className="fade-up">
+    <div className="fade-up relative">
       {/* Input Step */}
       {(step === 'input' || step === 'clarifying') && (
         <>

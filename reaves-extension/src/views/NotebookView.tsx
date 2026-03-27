@@ -1,25 +1,35 @@
 import { useEffect, useState } from 'react';
 import { readNotebooks, writeNotebooks } from '../notebook-bridge';
 import { checkAuthStatus } from '../api';
+import { useChromeStorageState } from '../lib/useChromeStorageState';
 import type { Notebook, NotebookEntry } from '../types';
 
 export default function NotebookView() {
-  const [notebooks, setNotebooks] = useState<Notebook[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [notebooks, setNotebooks, h1] = useChromeStorageState<Notebook[]>('nb_cache', []);
+  const [activeId, setActiveId, h2] = useChromeStorageState<string | null>('nb_active', null);
+  const [expandedId, setExpandedId, h3] = useChromeStorageState<string | null>('nb_expanded', null);
   const [toast, setToast] = useState<string | null>(null);
   
-  const [authStatus, setAuthStatus] = useState<{ isAuthenticated: boolean; message?: string } | null>(null);
+  const [authStatus, setAuthStatus, h4] = useChromeStorageState<{ isAuthenticated: boolean; message?: string } | null>('nb_auth', null);
+
+  const isHydrated = h1 && h2 && h3 && h4;
 
   useEffect(() => {
+    if (!isHydrated) return;
+    
+    // Background validation
     checkAuthStatus().then(setAuthStatus);
 
+    // Sync bridge
     readNotebooks().then(({ notebooks: nbs, activeId: id }) => {
       setNotebooks(nbs);
       setActiveId(id);
-      setExpandedId(id);
+      if (!expandedId && id) {
+        setExpandedId(id);
+      }
     });
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHydrated]);
 
   async function persist(nbs: Notebook[], id: string | null) {
     setNotebooks(nbs);
@@ -66,6 +76,10 @@ export default function NotebookView() {
     setToast(msg);
     setTimeout(() => setToast(null), 1800);
   };
+
+  if (!isHydrated) {
+    return <div className="flex items-center justify-center p-8 text-white/30 text-xs">Loading notebook...</div>;
+  }
 
   if (authStatus && !authStatus.isAuthenticated) {
     return (

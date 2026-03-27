@@ -9,6 +9,7 @@ import SourceCard from '@/components/results/SourceCard';
 import SynthesisPanel from '@/components/results/SynthesisPanel';
 import NotebookPanel from '@/components/notebook/NotebookPanel';
 import ThesisBuilder from '@/components/notebook/ThesisBuilder';
+import UserNav from '@/components/UserNav';
 import { useNotebooks } from '@/lib/notebook-context';
 import { ClarifierResponse, SearchResult, Source } from '@/types';
 
@@ -222,6 +223,9 @@ export default function DashboardPage() {
             <Link href="/notebook" className="p-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/5 transition-all">
               <BookOpen className="h-4 w-4" />
             </Link>
+            
+            <UserNav />
+
             <button
               onClick={() => setShowNotebook(!showNotebook)}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition-all ${

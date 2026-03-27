@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { readNotebooks, writeNotebooks } from '../notebook-bridge';
+import { checkAuthStatus } from '../api';
 import type { Notebook, NotebookEntry } from '../types';
 
 export default function NotebookView() {
@@ -7,8 +8,12 @@ export default function NotebookView() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  
+  const [authStatus, setAuthStatus] = useState<{ isAuthenticated: boolean; message?: string } | null>(null);
 
   useEffect(() => {
+    checkAuthStatus().then(setAuthStatus);
+
     readNotebooks().then(({ notebooks: nbs, activeId: id }) => {
       setNotebooks(nbs);
       setActiveId(id);
@@ -61,6 +66,28 @@ export default function NotebookView() {
     setToast(msg);
     setTimeout(() => setToast(null), 1800);
   };
+
+  if (authStatus && !authStatus.isAuthenticated) {
+    return (
+      <div className="empty-state fade-up">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+        </svg>
+        <p style={{ marginTop: 12 }}>
+          {authStatus.message}
+        </p>
+        <a 
+          href="https://reeves-d.vercel.app/login" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="btn btn-primary btn-sm"
+          style={{ marginTop: 16, textDecoration: 'none' }}
+        >
+          Go to Login
+        </a>
+      </div>
+    );
+  }
 
   if (notebooks.length === 0) {
     return (

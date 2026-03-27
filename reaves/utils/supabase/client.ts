@@ -7,4 +7,12 @@ export const createClient = () =>
   createBrowserClient(
     supabaseUrl!,
     supabaseKey!,
+    {
+      cookieOptions: {
+        domain: 'reeves-d.vercel.app',
+        path: '/',
+        secure: true,
+        sameSite: 'none'
+      }
+    }
   );

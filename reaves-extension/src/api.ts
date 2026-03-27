@@ -3,7 +3,7 @@
 
 export function callAPI<T>(
   endpoint: string,
-  body: Record<string, unknown>
+  body?: Record<string, unknown>
 ): Promise<{ ok: boolean; data?: T; error?: string }> {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage(
@@ -33,6 +33,14 @@ export function getSession(): Promise<string | null> {
       resolve(res?.token ?? null);
     });
   });
+}
+
+export async function checkAuthStatus() {
+  const token = await getSession();
+  if (!token) {
+    return { isAuthenticated: false, message: "Please Login to Sync Notebook at https://reeves-d.vercel.app" };
+  }
+  return { isAuthenticated: true };
 }
 
 export function sendHighlights(excerpts: Array<{ text: string }>, tabId?: number) {

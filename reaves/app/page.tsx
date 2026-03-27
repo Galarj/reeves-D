@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 import {
   ArrowRight,
   BookOpen,
@@ -64,7 +65,24 @@ const PIPELINE_STEPS = ['Ask', 'Clarify', 'Search', 'Score', 'Synthesize', 'Argu
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    const supabase = createClient();
+    
+    // Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, curSession) => {
+      setSession(curSession);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <main className="min-h-screen bg-[#06060e] overflow-hidden relative">
@@ -83,18 +101,20 @@ export default function HomePage() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 text-white/60 text-sm font-medium transition-all duration-300 hover:text-white hover:border-violet-500/40 hover:bg-violet-500/5 hover:shadow-[0_0_20px_rgba(139,92,246,0.15)]"
-            >
-              <LogIn className="h-3.5 w-3.5" />
-              Log In
-            </Link>
+            {!session ? (
+              <Link
+                href="/login"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 text-white/60 text-sm font-medium transition-all duration-300 hover:text-white hover:border-violet-500/40 hover:bg-violet-500/5 hover:shadow-[0_0_20px_rgba(139,92,246,0.15)]"
+              >
+                <LogIn className="h-3.5 w-3.5" />
+                Log In
+              </Link>
+            ) : null}
             <Link
               href="/dashboard"
               className="flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-sm font-semibold transition-all duration-300 shadow-lg shadow-violet-600/30 hover:shadow-violet-500/50 hover:scale-[1.03]"
             >
-              Start Researching
+              {session ? 'Go to Dashboard' : 'Start Researching'}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>

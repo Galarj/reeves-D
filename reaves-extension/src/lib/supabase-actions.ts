@@ -5,6 +5,7 @@
  */
 
 import { supabase } from './supabase-client';
+import { getAuthSessionFromWeb } from '../notebook-bridge';
 import type { Source } from '../types';
 
 export interface ActionResult {
@@ -16,8 +17,12 @@ export interface ActionResult {
  * Gets the current authenticated user and their active notebook.
  */
 async function getActiveContext() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  const token = await getAuthSessionFromWeb();
+  if (!token) throw new Error('Not authenticated with Web App');
+
+  // Set the session globally so RLS policies and .from() work
+  const { data: { user }, error: authErr } = await supabase.auth.setSession({ access_token: token, refresh_token: '' });
+  if (authErr || !user) throw new Error('Session invalid or expired');
 
   // Find their first notebook to save research to
   const { data: nb } = await supabase

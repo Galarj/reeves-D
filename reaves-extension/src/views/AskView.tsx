@@ -179,10 +179,10 @@ export default function AskView({ initialText, onTextConsumed }: Props) {
 
 
 
-  function scoreClass(score: number) {
-    if (score >= 70) return 'score-high';
-    if (score >= 40) return 'score-medium';
-    return 'score-low';
+  function getTrustProps(score: number) {
+    if (score >= 80) return { color: '#34d399', bg: 'rgba(52, 211, 153, 0.2)', border: 'rgba(52, 211, 153, 0.3)', label: 'High Trust' };
+    if (score >= 60) return { color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.2)', border: 'rgba(251, 191, 36, 0.3)', label: 'Moderate' };
+    return { color: '#fb7185', bg: 'rgba(251, 113, 133, 0.2)', border: 'rgba(251, 113, 133, 0.3)', label: 'Low Trust' };
   }
 
   return (
@@ -279,8 +279,24 @@ export default function AskView({ initialText, onTextConsumed }: Props) {
           {results.sources.map((source) => {
             const saved = savedIds.has(source.id);
             const pickerOpen = pickerOpenFor === source.id;
+            const trustProps = getTrustProps(source.trust_score);
             return (
               <div key={source.id} className="card fade-up">
+                <div className="flex-between gap-2" style={{ alignItems: 'flex-start', marginBottom: 6 }}>
+                  {/* High Fidelity Trust Pill from main web app */}
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    padding: '4px 8px', borderRadius: '999px',
+                    border: `1px solid ${trustProps.border}`,
+                    backgroundColor: trustProps.bg,
+                    color: trustProps.color,
+                    fontWeight: 'bold', fontSize: '10px'
+                  }}>
+                    <span style={{ fontSize: '12px', lineHeight: 1 }}>{source.trust_score}</span>
+                    <span style={{ opacity: 0.8 }}>{trustProps.label}</span>
+                  </div>
+                </div>
+
                 <div className="flex-between gap-2" style={{ alignItems: 'flex-start' }}>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontWeight: 600, fontSize: 12, lineHeight: 1.4, color: 'var(--text)', marginBottom: 2 }}>
@@ -290,9 +306,6 @@ export default function AskView({ initialText, onTextConsumed }: Props) {
                       {source.authors} · {source.year} · {source.journal}
                     </p>
                   </div>
-                  <span className={`score-badge ${scoreClass(source.trust_score)}`}>
-                    {source.trust_score}
-                  </span>
                 </div>
 
                 {/* Trust bar */}

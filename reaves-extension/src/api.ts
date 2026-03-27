@@ -27,19 +27,23 @@ export function getPendingSelection(): Promise<string | null> {
   });
 }
 
-export function getSession(): Promise<string | null> {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ type: 'GET_SESSION' }, (res) => {
-      resolve(res?.token ?? null);
-    });
-  });
+import { getAuthSessionFromWeb } from './notebook-bridge';
+
+export async function getSession(): Promise<string | null> {
+  return await getAuthSessionFromWeb();
 }
 
 export async function checkAuthStatus() {
   const token = await getSession();
   if (!token) {
+    // Clear out background Service Worker session just to be safe
+    chrome.runtime.sendMessage({ type: 'CLEAR_SESSION' });
     return { isAuthenticated: false, message: "Please Login to Sync Notebook at https://reeves-d.vercel.app" };
   }
+  
+  // Explicitly persist the real token to the Background Worker so API calls use the token!
+  await new Promise(resolve => chrome.runtime.sendMessage({ type: 'SET_SESSION', token }, resolve));
+  
   return { isAuthenticated: true };
 }
 

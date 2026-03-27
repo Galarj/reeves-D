@@ -89,3 +89,37 @@ function readLocal(): NotebookState {
   } catch { /* empty */ }
   return { notebooks: [], activeId: null };
 }
+
+/** 
+ * Safely extract the Supabase Auth session from the active REAVES tab
+ * so the extension can sync directly to the cloud.
+ */
+export async function getAuthSessionFromWeb(): Promise<string | null> {
+  const tabId = await findReavesTab();
+  if (!tabId) return null;
+
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => {
+        // The key used by Supabase Auth on the Vercel app
+        const key = 'sb-fxmudyjgfheriatuqphw-auth-token';
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            return parsed.access_token;
+          } catch { return null; }
+        }
+        return null;
+      },
+      args: [],
+    });
+
+    const token = results?.[0]?.result;
+    return token || null;
+  } catch (err) {
+    console.warn('[auth-bridge] Could not read session from REAVES tab:', err);
+    return null;
+  }
+}

@@ -6,8 +6,7 @@ import AnalyzePage from './views/AnalyzePage';
 import { useGlossaryToggle } from './views/GlossaryCard';
 import { GlossaryPopup } from './components/GlossaryTooltip';
 import Header from './components/Header';
-import MockLogin from './views/MockLogin';
-import { UserProvider, useAuth } from './lib/UserContext';
+import { UserProvider } from './lib/UserContext';
 import type { View } from './types';
 
 // Icons (inline SVG to keep bundle size tiny)
@@ -28,12 +27,6 @@ const BookIcon = () => (
 );
 
 function AppInner() {
-  const { isAuthenticated, login } = useAuth();
-
-  // ─── Gate: show MockLogin when not authenticated ───────────
-  if (!isAuthenticated) {
-    return <MockLogin onLogin={login} />;
-  }
   const [view, setView] = useState<View>('ask');
   const [pendingText, setPendingText] = useState<string | null>(null);
 

@@ -94,32 +94,51 @@ function readLocal(): NotebookState {
  * Safely extract the Supabase Auth session from the active REAVES tab
  * so the extension can sync directly to the cloud.
  */
+/**
+ * Reads the Supabase chunks securely straight out of Chrome's background
+ * cookie jar, entirely bypassing CORS, deployment boundaries, and tab targets.
+ */
 export async function getAuthSessionFromWeb(): Promise<string | null> {
-  const tabId = await findReavesTab();
-  if (!tabId) return null;
+  const url = 'https://reeves-d.vercel.app';
+  const prefix = 'sb-fxmudyjgfheriatuqphw-auth-token';
 
   try {
-    const results = await chrome.scripting.executeScript({
-      target: { tabId },
-      func: () => {
-        // The key used by Supabase Auth on the Vercel app
-        const key = 'sb-fxmudyjgfheriatuqphw-auth-token';
-        const raw = localStorage.getItem(key);
-        if (raw) {
-          try {
-            const parsed = JSON.parse(raw);
-            return parsed.access_token;
-          } catch { return null; }
-        }
-        return null;
-      },
-      args: [],
+    const cookies = await chrome.cookies.getAll({ url });
+    if (!cookies || cookies.length === 0) return null;
+
+    const authCookies = cookies.filter(c => c.name.startsWith(prefix));
+    if (authCookies.length === 0) return null;
+
+    // Sort appropriately to combine chunked cookies (.0, .1)
+    authCookies.sort((a, b) => {
+      const aIdx = parseInt(a.name.split('.').pop() || '0', 10);
+      const bIdx = parseInt(b.name.split('.').pop() || '0', 10);
+      return (Number.isNaN(aIdx) ? 0 : aIdx) - (Number.isNaN(bIdx) ? 0 : bIdx);
     });
 
-    const token = results?.[0]?.result;
-    return token || null;
+    let rawData = authCookies.map(c => c.value).join('');
+
+    // Decode if base64 chunked mode is active
+    if (rawData.startsWith('base64-')) {
+      try {
+        const decoded = atob(rawData.replace('base64-', ''));
+        return JSON.parse(decoded).access_token || null;
+      } catch {
+        // fallback
+      }
+    }
+
+    try {
+      return JSON.parse(decodeURIComponent(rawData)).access_token || null;
+    } catch {
+      try {
+        return JSON.parse(rawData).access_token || null;
+      } catch {
+        return null;
+      }
+    }
   } catch (err) {
-    console.warn('[auth-bridge] Could not read session from REAVES tab:', err);
+    console.warn('[auth-bridge] Failed to decode Supabase cookies natively:', err);
     return null;
   }
 }
